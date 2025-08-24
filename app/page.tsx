@@ -220,9 +220,9 @@ export default function Home() {
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">✨ GlowUp</h1>
-          <p className="text-xl text-white/80">Gamify your wellness journey</p>
+        <div className="text-center mb-8 floating">
+          <h1 className="text-5xl font-black text-white mb-2 drop-shadow-lg">✨ GlowUp</h1>
+          <p className="text-xl text-white/90 font-medium">Gamify your wellness journey</p>
         </div>
 
         {/* Stats Card */}
@@ -250,7 +250,7 @@ export default function Home() {
             </div>
             <div className="w-full bg-white/20 rounded-full h-3">
               <div
-                className="bg-gradient-to-r from-pink-400 to-purple-500 h-3 rounded-full transition-all duration-500 ease-out"
+                className="progress-bar h-3 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${getProgressToNextLevel()}%` }}
               ></div>
             </div>
@@ -270,7 +270,7 @@ export default function Home() {
             {userData.habits.map(habit => (
               <div
                 key={habit.id}
-                className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all duration-300 ${
+                className={`habit-card flex items-center justify-between p-4 cursor-pointer ${
                   habit.completedToday
                     ? 'bg-gradient-to-r from-green-400/20 to-blue-400/20 hover:from-green-400/30 hover:to-blue-400/30'
                     : 'bg-white/10 hover:bg-white/20'
