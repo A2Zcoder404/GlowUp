@@ -72,7 +72,7 @@ const getInitialBadges = (): Badge[] => [
   {
     id: 'fitness-warrior',
     name: 'Fitness Warrior',
-    icon: '��‍♂️',
+    icon: '🏃‍♂️',
     condition: (habits: Habit[]) => habits.find(h => h.name === 'Exercise' && h.streakCount >= 5) !== undefined,
     unlocked: false
   },
@@ -116,32 +116,104 @@ export default function Home() {
   const [newBadges, setNewBadges] = useState<Badge[]>([])
   const [showConfetti, setShowConfetti] = useState(false)
 
-  const toggleHabit = (id: string) => {
-    setHabits(habits.map(habit => {
-      if (habit.id === id) {
-        const newCompleted = !habit.completed
-        if (newCompleted) {
-          setXp(prev => prev + 25)
-          return { ...habit, completed: newCompleted, streak: habit.streak + 1 }
-        } else {
-          setXp(prev => prev - 25)
-          return { ...habit, completed: newCompleted, streak: Math.max(0, habit.streak - 1) }
-        }
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const savedData = localStorage.getItem('glowup-data')
+    if (savedData) {
+      const parsed = JSON.parse(savedData) as UserData
+
+      // Check if it's a new day - reset completedToday but maintain streaks
+      const today = getTodayKey()
+      if (parsed.lastVisitDate !== today) {
+        const resetHabits = parsed.habits.map(habit => ({
+          ...habit,
+          completedToday: false,
+          // If user didn't complete habit yesterday, reset streak
+          streakCount: habit.lastCompletedDate === parsed.lastVisitDate ? habit.streakCount : 0
+        }))
+
+        setUserData({
+          ...parsed,
+          habits: resetHabits,
+          lastVisitDate: today
+        })
+      } else {
+        setUserData(parsed)
       }
-      return habit
-    }))
+    }
+
+    // Set daily quote based on date
+    const quoteIndex = new Date().getDate() % motivationalQuotes.length
+    setTodayQuote(motivationalQuotes[quoteIndex])
+  }, [])
+
+  // Save to localStorage whenever userData changes
+  useEffect(() => {
+    localStorage.setItem('glowup-data', JSON.stringify(userData))
+  }, [userData])
+
+  const toggleHabit = (id: string) => {
+    setUserData(prev => {
+      const updatedHabits = prev.habits.map(habit => {
+        if (habit.id === id) {
+          const newCompleted = !habit.completedToday
+          const xpGain = 10
+          const today = getTodayKey()
+
+          if (newCompleted) {
+            return {
+              ...habit,
+              completedToday: true,
+              streakCount: habit.streakCount + 1,
+              xpEarned: habit.xpEarned + xpGain,
+              lastCompletedDate: today
+            }
+          } else {
+            return {
+              ...habit,
+              completedToday: false,
+              streakCount: Math.max(0, habit.streakCount - 1),
+              xpEarned: Math.max(0, habit.xpEarned - xpGain)
+            }
+          }
+        }
+        return habit
+      })
+
+      const newTotalXP = updatedHabits.reduce((sum, h) => sum + h.xpEarned, 0)
+      const newLevel = getLevel(newTotalXP)
+
+      // Check for new badges
+      const updatedBadges = prev.badges.map(badge => {
+        const shouldUnlock = badge.condition(updatedHabits) && !badge.unlocked
+        if (shouldUnlock) {
+          setNewBadges(prevNew => [...prevNew, badge])
+          setShowConfetti(true)
+          setTimeout(() => setShowConfetti(false), 3000)
+          return { ...badge, unlocked: true, unlockedDate: getTodayKey() }
+        }
+        return badge
+      })
+
+      return {
+        ...prev,
+        habits: updatedHabits,
+        totalXP: newTotalXP,
+        level: newLevel,
+        badges: updatedBadges
+      }
+    })
   }
 
-  const getBadges = () => {
-    const badges = []
-    const totalStreak = habits.reduce((sum, habit) => sum + habit.streak, 0)
-    
-    if (totalStreak >= 20) badges.push({ name: 'Consistency Master', icon: '👑' })
-    if (habits.find(h => h.name === 'Drink Water' && h.streak >= 7)) badges.push({ name: 'Hydration Hero', icon: '💧' })
-    if (habits.find(h => h.name === 'Exercise' && h.streak >= 5)) badges.push({ name: 'Fitness Champion', icon: '🏆' })
-    if (habits.find(h => h.streak >= 7)) badges.push({ name: '7-Day Streak', icon: '🔥' })
-    
-    return badges
+  const dismissNewBadges = () => {
+    setNewBadges([])
+  }
+
+  const getUnlockedBadges = () => userData.badges.filter(badge => badge.unlocked)
+  const getProgressToNextLevel = () => {
+    const current = getXPProgress(userData.totalXP, userData.level)
+    const needed = getXPForNextLevel(userData.level)
+    return (current / needed) * 100
   }
 
   return (
