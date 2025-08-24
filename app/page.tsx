@@ -32,7 +32,7 @@ const motivationalQuotes = [
   "Small daily improvements lead to stunning results! 🎯",
   "Your wellness journey is unique and beautiful! 🌸",
   "Every habit completed is a victory! 🏆",
-  "Believe in the power of your daily choices! ���",
+  "Believe in the power of your daily choices! ⭐",
   "You're stronger than you think! 💪",
   "Mindful moments create magical transformations! 🧘‍♀️",
   "Your health is your greatest wealth! 💎",
@@ -118,10 +118,26 @@ export default function Home() {
   const [toastMessage, setToastMessage] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load data from Firebase on mount
+  // Load data from Firebase/localStorage on mount
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
+
+      // Set loading timeout to prevent infinite loading
+      const loadingTimeout = setTimeout(() => {
+        console.warn('Loading timeout reached, using default data')
+        setUserData({
+          habits: getInitialHabits(),
+          totalXP: 0,
+          level: 1,
+          badges: getInitialBadges(),
+          lastVisitDate: getTodayKey()
+        })
+        setToastMessage('⚠️ Using offline mode - data will sync when possible')
+        setTimeout(() => setToastMessage(''), 3000)
+        setIsLoading(false)
+      }, 10000) // 10 second timeout
+
       try {
         const savedData = await loadUserData()
 
@@ -140,13 +156,15 @@ export default function Home() {
 
           setUserData(updatedData)
 
-          // Save back to Firebase if we made changes
+          // Save back to Firebase if we made changes (non-blocking)
           if (updatedData !== savedData) {
-            await saveUserData(updatedData)
+            saveUserData(updatedData).catch(error =>
+              console.warn('Background save failed:', error)
+            )
           }
 
-          // Show Firebase connection success
-          setToastMessage('🔥 Connected to Firebase successfully!')
+          // Show connection status
+          setToastMessage('✅ Data loaded successfully!')
           setTimeout(() => setToastMessage(''), 2000)
         } else {
           // Initialize with default data
@@ -158,10 +176,14 @@ export default function Home() {
             lastVisitDate: getTodayKey()
           }
           setUserData(initialData)
-          await saveUserData(initialData)
+
+          // Save to Firebase in background (non-blocking)
+          saveUserData(initialData).catch(error =>
+            console.warn('Initial save failed:', error)
+          )
 
           // Welcome new user
-          setToastMessage('🎮 Welcome to GlowUp! Your data is now saved in Firebase!')
+          setToastMessage('🎮 Welcome to GlowUp!')
           setTimeout(() => setToastMessage(''), 3000)
         }
       } catch (error) {
@@ -174,8 +196,11 @@ export default function Home() {
           badges: getInitialBadges(),
           lastVisitDate: getTodayKey()
         })
+        setToastMessage('⚠️ Started in offline mode')
+        setTimeout(() => setToastMessage(''), 3000)
       }
 
+      clearTimeout(loadingTimeout)
       setIsLoading(false)
     }
 
@@ -186,10 +211,12 @@ export default function Home() {
     setTodayQuote(motivationalQuotes[quoteIndex])
   }, [])
 
-  // Save to Firebase whenever userData changes
+  // Save to Firebase whenever userData changes (non-blocking)
   useEffect(() => {
     if (!isLoading) {
-      saveUserData(userData)
+      saveUserData(userData).catch(error =>
+        console.warn('Background save failed:', error)
+      )
     }
   }, [userData, isLoading])
 
@@ -298,9 +325,10 @@ export default function Home() {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4 animate-pulse">⚡</div>
-          <div className="text-xl neon-text font-bold">LOADING MISSION DATA...</div>
-          <div className="text-sm text-cyan-300 mt-2">Connecting to Firebase...</div>
+          <div className="text-6xl mb-4 animate-spin">⚡</div>
+          <div className="text-xl neon-text font-bold">INITIALIZING GLOWUP...</div>
+          <div className="text-sm text-cyan-300 mt-2">Loading your wellness data...</div>
+          <div className="text-xs text-gray-400 mt-3">If this takes too long, we'll start in offline mode</div>
         </div>
       </div>
     )
@@ -321,8 +349,8 @@ export default function Home() {
               <span className="neon-yellow">●</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-green-400 font-bold">FIREBASE CONNECTED</span>
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+              <span className="text-cyan-400 font-bold">DATA SYNCED</span>
             </div>
           </div>
         </div>
