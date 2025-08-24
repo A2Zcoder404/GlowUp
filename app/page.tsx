@@ -611,24 +611,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Modals */}
-        {showTargetModal && (
-          <TargetModal
-            habit={userData.habits.find(h => h.id === showTargetModal)!}
-            isOpen={!!showTargetModal}
-            onClose={() => setShowTargetModal(null)}
-            onUpdateTarget={updateHabitTarget}
-          />
-        )}
-
-        {showProgressModal && (
-          <ProgressModal
-            habit={userData.habits.find(h => h.id === showProgressModal)!}
-            isOpen={!!showProgressModal}
-            onClose={() => setShowProgressModal(null)}
-            onUpdateProgress={updateHabitProgress}
-          />
-        )}
+        {/* Modals temporarily disabled - will be re-implemented */}
       </div>
     </div>
   )
