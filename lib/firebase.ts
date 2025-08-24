@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -26,8 +26,8 @@ try {
 }
 
 // Initialize Firebase services
-let db;
-let auth;
+let db: Firestore | undefined;
+let auth: Auth | undefined;
 
 if (typeof window !== 'undefined') {
   // Only initialize in browser environment
