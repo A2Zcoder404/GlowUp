@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn, signUp } from '../lib/auth'
+import { testFirebaseConnection } from '../lib/firebase-test'
 
 interface LoginPageProps {
   onLogin: () => void
