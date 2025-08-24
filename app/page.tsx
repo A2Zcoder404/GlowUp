@@ -45,7 +45,7 @@ const motivationalQuotes = [
   "Every habit completed is a victory! 🏆",
   "Believe in the power of your daily choices! ⭐",
   "You're stronger than you think! 💪",
-  "Mindful moments create magical transformations! 🧘‍���️",
+  "Mindful moments create magical transformations! 🧘‍♀️",
   "Your health is your greatest wealth! 💎",
   "Celebrate every small win today! 🎉",
   "Consistency beats perfection every time! 🔥",
@@ -425,7 +425,7 @@ export default function Home() {
         <div className="glow-card p-6 mb-6 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-pink-500/10 animate-pulse"></div>
           <div className="relative z-10">
-            <h3 className="text-lg font-bold neon-yellow mb-3 tracking-wider">⚡ DAILY MOTIVATION ⚡</h3>
+            <h3 className="text-lg font-bold neon-yellow mb-3 tracking-wider">⚡ DAILY MOTIVATION ���</h3>
             <p className="text-xl text-cyan-100 italic font-medium leading-relaxed">{todayQuote}</p>
           </div>
         </div>
@@ -492,10 +492,24 @@ export default function Home() {
 
                   {/* Progress Section */}
                   <div className="mb-3">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-cyan-300 font-semibold">
-                        {habit.progress}{habit.progressUnit} / {habit.target}{habit.targetUnit}
-                      </span>
+                    <div className="flex justify-between items-center text-sm mb-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-cyan-300 font-semibold">
+                          {habit.progress}{habit.progressUnit} /
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newTarget = habit.type === 'water'
+                              ? habit.target === 2 ? 3 : habit.target === 3 ? 4 : habit.target === 4 ? 6 : 2
+                              : habit.target === 30 ? 60 : habit.target === 60 ? 90 : habit.target === 90 ? 120 : 30
+                            updateHabitTarget(habit.id, newTarget)
+                          }}
+                          className="text-pink-400 font-bold hover:text-pink-300 transition-colors"
+                        >
+                          {habit.target}{habit.targetUnit} ⚙️
+                        </button>
+                      </div>
                       <span className={`font-bold ${
                         progressPercentage >= 100 ? 'neon-green' :
                         progressPercentage >= 75 ? 'text-yellow-400' :
