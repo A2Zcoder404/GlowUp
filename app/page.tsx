@@ -572,6 +572,25 @@ export default function Home() {
           </div>
         )}
 
+        {/* Feature Info Section */}
+        <div className="glow-card p-4 mb-6 text-center">
+          <h3 className="text-lg font-bold neon-yellow mb-3">🚀 NEW FEATURES</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="p-3 border border-cyan-500/30 rounded-lg bg-cyan-500/10">
+              <div className="neon-text font-bold mb-1">⚙️ SMART SETTINGS</div>
+              <div className="text-gray-300">Click target values to see XP previews and streak rules</div>
+            </div>
+            <div className="p-3 border border-pink-500/30 rounded-lg bg-pink-500/10">
+              <div className="neon-pink font-bold mb-1">🔥 FIREBASE SYNC</div>
+              <div className="text-gray-300">Your progress is automatically saved to cloud database</div>
+            </div>
+            <div className="p-3 border border-green-500/30 rounded-lg bg-green-500/10">
+              <div className="neon-green font-bold mb-1">📊 DAILY RESET</div>
+              <div className="text-gray-300">Streaks count once per day, progress resets at midnight</div>
+            </div>
+          </div>
+        </div>
+
         {/* Settings Modal */}
         {showSettingsModal && (
           <SettingsModal
