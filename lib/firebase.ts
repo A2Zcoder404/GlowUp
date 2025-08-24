@@ -2,6 +2,7 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -17,6 +18,7 @@ const firebaseConfig = {
 // Initialize Firebase only once
 let app;
 let db;
+let auth;
 let analytics;
 
 if (typeof window !== 'undefined') {
@@ -32,6 +34,9 @@ if (typeof window !== 'undefined') {
     // Initialize Firestore
     db = getFirestore(app);
 
+    // Initialize Auth
+    auth = getAuth(app);
+
     // Initialize Analytics
     try {
       analytics = getAnalytics(app);
@@ -45,5 +50,5 @@ if (typeof window !== 'undefined') {
   }
 }
 
-export { db, analytics, app };
+export { db, auth, analytics, app };
 export default app;

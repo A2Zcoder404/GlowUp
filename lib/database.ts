@@ -1,4 +1,5 @@
 import { db } from './firebase';
+import { auth } from './firebase';
 import { 
   doc, 
   getDoc, 
@@ -42,15 +43,21 @@ export interface UserData {
   updatedAt?: Timestamp
 }
 
-// Generate a simple user ID (in a real app, use proper authentication)
+// Get authenticated user ID
 const getUserId = (): string => {
+  const user = auth?.currentUser;
+  if (user) {
+    return user.uid;
+  }
+  
+  // Fallback to localStorage for offline mode
   let userId = localStorage.getItem('glowup-user-id');
   if (!userId) {
-    userId = 'user_' + Math.random().toString(36).substr(2, 9);
+    userId = 'offline_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('glowup-user-id', userId);
   }
   return userId;
-}
+};
 
 // Save user data to Firebase
 export const saveUserData = async (userData: UserData): Promise<void> => {
@@ -62,7 +69,7 @@ export const saveUserData = async (userData: UserData): Promise<void> => {
   }
 
   // Try Firebase only if we're in browser and have db connection
-  if (typeof window !== 'undefined' && db) {
+  if (typeof window !== 'undefined' && db && auth?.currentUser) {
     try {
       const userId = getUserId();
       const userRef = doc(db, 'users', userId);
@@ -74,10 +81,10 @@ export const saveUserData = async (userData: UserData): Promise<void> => {
 
       console.log('User data saved to Firebase successfully');
     } catch (error) {
-      console.warn('Firebase save failed, using localStorage backup:', error);
+      console.warn('Firebase save failed (user may be offline):', error);
     }
   } else {
-    console.log('Firebase not available, using localStorage only');
+    console.log('Firebase not available or user not authenticated, using localStorage only');
   }
 };
 
@@ -96,7 +103,7 @@ export const loadUserData = async (): Promise<UserData | null> => {
   }
 
   // Try Firebase only if we're in browser and have db connection
-  if (typeof window !== 'undefined' && db) {
+  if (typeof window !== 'undefined' && db && auth?.currentUser) {
     try {
       const userId = getUserId();
       const userRef = doc(db, 'users', userId);
@@ -130,7 +137,7 @@ export const loadUserData = async (): Promise<UserData | null> => {
       return localData;
     }
   } else {
-    console.log('Firebase not available, using localStorage only');
+    console.log('Firebase not available or user not authenticated, using localStorage only');
     return localData;
   }
 };

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { onAuthStateChange, logOut, type AuthUser } from '../lib/auth'
+import LoginPage from '../components/LoginPage'
 import SettingsModal from '../components/SettingsModal'
 import {
   saveUserData,
@@ -104,6 +106,8 @@ const getTargetOptions = (type: string) => {
 }
 
 export default function Home() {
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [userData, setUserData] = useState<UserData>({
     habits: getInitialHabits(),
     totalXP: 0,
@@ -118,8 +122,35 @@ export default function Home() {
   const [toastMessage, setToastMessage] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
 
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChange((authUser) => {
+      setUser(authUser)
+      setAuthLoading(false)
+      
+      if (authUser) {
+        console.log('User authenticated:', authUser.email)
+      } else {
+        console.log('User signed out')
+        // Clear user data when signed out
+        setUserData({
+          habits: getInitialHabits(),
+          totalXP: 0,
+          level: 1,
+          badges: getInitialBadges(),
+          lastVisitDate: getTodayKey()
+        })
+      }
+    })
+
+    return () => unsubscribe()
+  }, [])
+
   // Load data from Firebase/localStorage on mount
   useEffect(() => {
+    // Only load data if user is authenticated
+    if (!user) return
+    
     const loadData = async () => {
       setIsLoading(true)
 
@@ -209,16 +240,28 @@ export default function Home() {
     // Set daily quote based on date
     const quoteIndex = new Date().getDate() % motivationalQuotes.length
     setTodayQuote(motivationalQuotes[quoteIndex])
-  }, [])
+  }, [user])
 
   // Save to Firebase whenever userData changes (non-blocking)
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && user) {
       saveUserData(userData).catch(error =>
         console.warn('Background save failed:', error)
       )
     }
-  }, [userData, isLoading])
+  }, [userData, isLoading, user])
+
+  const handleSignOut = async () => {
+    try {
+      await logOut()
+      setToastMessage('👋 Signed out successfully!')
+      setTimeout(() => setToastMessage(''), 2000)
+    } catch (error) {
+      console.error('Sign out error:', error)
+      setToastMessage('❌ Sign out failed')
+      setTimeout(() => setToastMessage(''), 3000)
+    }
+  }
 
   const updateHabitProgress = (id: string, newProgress: number) => {
     setUserData(prev => {
@@ -321,6 +364,24 @@ export default function Home() {
     return (current / needed) * 100
   }
 
+  // Show loading screen while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-spin">⚡</div>
+          <div className="text-xl neon-text font-bold">INITIALIZING GLOWUP...</div>
+          <div className="text-sm text-cyan-300 mt-2">Checking authentication...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login page if not authenticated
+  if (!user) {
+    return <LoginPage onLogin={() => {}} />
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
@@ -348,9 +409,16 @@ export default function Home() {
               <span className="neon-green">●</span>
               <span className="neon-yellow">●</span>
             </div>
-            <div className="flex items-center space-x-2 text-sm">
+            <div className="flex items-center space-x-4 text-sm">
               <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
               <span className="text-cyan-400 font-bold">DATA SYNCED</span>
+              <button
+                onClick={handleSignOut}
+                className="text-xs text-gray-400 hover:text-red-400 transition-colors font-medium"
+                title="Sign Out"
+              >
+                👤 {user.email} • LOGOUT
+              </button>
             </div>
           </div>
         </div>
