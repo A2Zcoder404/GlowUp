@@ -1,53 +1,158 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Orbitron:wght@700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  background: radial-gradient(ellipse at center, #0d1421 0%, #0a0e1a 50%, #000510 100%);
+  background-attachment: fixed;
   min-height: 100vh;
   font-family: 'Poppins', sans-serif;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Animated background particles */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, #00ffff, transparent),
+    radial-gradient(2px 2px at 40px 70px, #ff00ff, transparent),
+    radial-gradient(1px 1px at 90px 40px, #00ff00, transparent),
+    radial-gradient(1px 1px at 130px 80px, #ffff00, transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: stars 20s linear infinite;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+@keyframes stars {
+  from { transform: translateY(0px); }
+  to { transform: translateY(-100px); }
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Orbitron', monospace;
   font-weight: 700;
+  text-shadow: 0 0 10px currentColor;
 }
 
 .glow-card {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 20, 40, 0.8);
   backdrop-filter: blur(15px);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  box-shadow:
+    0 0 20px rgba(0, 255, 255, 0.2),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #00ffff, #ff00ff, #00ff00, #ffff00);
+  border-radius: 22px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glow-card:hover::before {
+  opacity: 0.7;
 }
 
 .habit-card {
   border-radius: 16px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.1);
+  background: rgba(0, 30, 60, 0.6);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.1);
 }
 
 .habit-card:hover {
-  box-shadow: 0 8px 25px 0 rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 0 25px rgba(0, 255, 255, 0.4),
+    0 0 50px rgba(0, 255, 255, 0.2);
   transform: translateY(-2px);
+  border-color: rgba(0, 255, 255, 0.5);
+}
+
+.habit-completed {
+  background: rgba(0, 255, 0, 0.2);
+  border-color: rgba(0, 255, 0, 0.5);
+  box-shadow:
+    0 0 25px rgba(0, 255, 0, 0.3),
+    0 0 50px rgba(0, 255, 0, 0.1);
 }
 
 .streak-badge {
-  background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 100%);
-  box-shadow: 0 4px 15px 0 rgba(255, 154, 158, 0.4);
+  background: linear-gradient(45deg, #ff00ff 0%, #00ffff 50%, #ff00ff 100%);
+  box-shadow:
+    0 0 20px rgba(255, 0, 255, 0.5),
+    0 0 40px rgba(0, 255, 255, 0.3);
   transition: all 0.3s ease;
+  animation: neon-pulse 2s ease-in-out infinite alternate;
 }
 
 .streak-badge:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px 0 rgba(255, 154, 158, 0.6);
+  box-shadow:
+    0 0 30px rgba(255, 0, 255, 0.7),
+    0 0 60px rgba(0, 255, 255, 0.5);
 }
 
 .progress-bar {
-  background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
-  box-shadow: 0 2px 10px 0 rgba(255, 154, 158, 0.4);
+  background: linear-gradient(90deg, #00ffff 0%, #ff00ff 50%, #00ff00 100%);
+  box-shadow:
+    0 0 15px rgba(0, 255, 255, 0.6),
+    0 0 30px rgba(255, 0, 255, 0.4);
+  animation: progress-glow 2s ease-in-out infinite alternate;
+}
+
+.neon-text {
+  color: #00ffff;
+  text-shadow:
+    0 0 5px #00ffff,
+    0 0 10px #00ffff,
+    0 0 15px #00ffff,
+    0 0 20px #00ffff;
+}
+
+.neon-pink {
+  color: #ff00ff;
+  text-shadow:
+    0 0 5px #ff00ff,
+    0 0 10px #ff00ff,
+    0 0 15px #ff00ff;
+}
+
+.neon-green {
+  color: #00ff00;
+  text-shadow:
+    0 0 5px #00ff00,
+    0 0 10px #00ff00,
+    0 0 15px #00ff00;
+}
+
+.neon-yellow {
+  color: #ffff00;
+  text-shadow:
+    0 0 5px #ffff00,
+    0 0 10px #ffff00,
+    0 0 15px #ffff00;
 }
 
 @keyframes pulse {
