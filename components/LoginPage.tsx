@@ -85,8 +85,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm text-center">
-                ⚠️ {error}
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+                <div className="text-center font-bold mb-2">⚠️ Authentication Error</div>
+                <div className="text-center">{error}</div>
+                {error.includes('configuration') && (
+                  <div className="mt-2 text-xs text-center text-yellow-300">
+                    💡 This usually means Firebase is not properly configured. Check the console for details.
+                  </div>
+                )}
+                {error.includes('network') && (
+                  <div className="mt-2 text-xs text-center text-yellow-300">
+                    💡 Check your internet connection and try again.
+                  </div>
+                )}
               </div>
             )}
 
