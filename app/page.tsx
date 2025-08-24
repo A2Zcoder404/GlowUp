@@ -512,25 +512,26 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Control Buttons */}
+                  {/* Quick Progress Controls */}
                   <div className="flex space-x-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        setShowProgressModal(habit.id)
+                        const quickAmount = habit.type === 'water' ? 0.5 : 30
+                        updateHabitProgress(habit.id, habit.progress + quickAmount)
                       }}
-                      className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-cyan-400/50 text-cyan-300 rounded-lg font-bold text-xs hover:from-blue-500/30 hover:to-cyan-500/30 hover:border-cyan-400 transition-all"
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-400/50 text-green-300 rounded-lg font-bold text-xs hover:from-green-500/30 hover:to-blue-500/30 hover:border-green-400 transition-all"
                     >
-                      📊 UPDATE
+                      ➕ ADD {habit.type === 'water' ? '0.5L' : '30min'}
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        setShowTargetModal(habit.id)
+                        updateHabitProgress(habit.id, habit.target)
                       }}
                       className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-pink-400/50 text-pink-300 rounded-lg font-bold text-xs hover:from-purple-500/30 hover:to-pink-500/30 hover:border-pink-400 transition-all"
                     >
-                      ⚙️ TARGET
+                      🎯 COMPLETE
                     </button>
                   </div>
                 </div>
