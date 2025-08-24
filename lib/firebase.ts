@@ -1,12 +1,9 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAaS9E24kYo9KBzzPG_uDcRNjdFoNfRzn0",
   authDomain: "glowup-01.firebaseapp.com",
@@ -17,17 +14,36 @@ const firebaseConfig = {
   measurementId: "G-58MV5GK932"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Initialize Analytics (only in browser environment)
+// Initialize Firebase only once
+let app;
+let db;
 let analytics;
+
 if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
+  // Only initialize in browser environment
+  try {
+    // Check if Firebase is already initialized
+    if (getApps().length === 0) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApps()[0];
+    }
+
+    // Initialize Firestore
+    db = getFirestore(app);
+
+    // Initialize Analytics
+    try {
+      analytics = getAnalytics(app);
+    } catch (analyticsError) {
+      console.warn('Analytics initialization failed:', analyticsError);
+    }
+
+    console.log('Firebase initialized successfully');
+  } catch (error) {
+    console.error('Firebase initialization failed:', error);
+  }
 }
 
-// Initialize Firestore
-export const db = getFirestore(app);
-
-export { analytics };
+export { db, analytics, app };
 export default app;
