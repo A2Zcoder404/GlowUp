@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { signIn, signUp } from '../lib/auth'
-import { testFirebaseConnection } from '../lib/firebase-test'
+import { testFirebaseConnection, verifyFirebaseProject } from '../lib/firebase-test'
 
 interface LoginPageProps {
   onLogin: () => void
@@ -216,7 +216,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
         {/* Footer */}
         <div className="text-center mt-6 text-gray-400 text-sm">
-          <p>🌟 Transform your wellness journey into an epic adventure ��</p>
+          <p>🌟 Transform your wellness journey into an epic adventure 🌟</p>
         </div>
       </div>
     </div>
