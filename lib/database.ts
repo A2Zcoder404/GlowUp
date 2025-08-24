@@ -40,6 +40,7 @@ export interface UserData {
   badges: Badge[]
   lastVisitDate: string
   userId?: string // User ID for data ownership verification
+  lastSaved?: string // ISO timestamp of last save
   createdAt?: Timestamp
   updatedAt?: Timestamp
 }
