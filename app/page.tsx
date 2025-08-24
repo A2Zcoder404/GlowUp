@@ -274,35 +274,56 @@ export default function Home() {
 
         {/* Habits */}
         <div className="glow-card p-6 mb-6">
-          <h3 className="text-xl font-bold text-white mb-4">🎯 Today's Habits</h3>
-          <div className="space-y-3">
+          <h3 className="text-xl font-bold neon-text mb-6 tracking-wider text-center">⚡ TODAY'S MISSIONS ⚡</h3>
+          <div className="space-y-4">
             {userData.habits.map(habit => (
               <div
                 key={habit.id}
-                className={`habit-card flex items-center justify-between p-4 cursor-pointer ${
+                className={`habit-card flex items-center justify-between p-4 cursor-pointer transition-all duration-300 ${
                   habit.completedToday
-                    ? 'bg-gradient-to-r from-green-400/20 to-blue-400/20 hover:from-green-400/30 hover:to-blue-400/30'
-                    : 'bg-white/10 hover:bg-white/20'
+                    ? 'habit-completed completion-animation'
+                    : 'hover:scale-102'
                 }`}
                 onClick={() => toggleHabit(habit.id)}
               >
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{habit.icon}</span>
+                <div className="flex items-center space-x-4">
+                  <div className="text-3xl relative">
+                    {habit.icon}
+                    {habit.completedToday && (
+                      <div className="absolute -inset-1 rounded-full bg-green-400/30 animate-ping"></div>
+                    )}
+                  </div>
                   <div>
-                    <div className="text-white font-medium">{habit.name}</div>
-                    <div className="text-white/70 text-sm flex items-center space-x-2">
-                      <span>🔥 {habit.streakCount} day streak</span>
-                      <span>•</span>
-                      <span>⭐ {habit.xpEarned} XP earned</span>
+                    <div className={`font-bold text-lg ${
+                      habit.completedToday ? 'neon-green' : 'text-cyan-100'
+                    }`}>
+                      {habit.name.toUpperCase()}
+                    </div>
+                    <div className="text-sm flex items-center space-x-3 mt-1">
+                      <span className="flex items-center space-x-1">
+                        <span className="text-orange-400">🔥</span>
+                        <span className="text-orange-300 font-semibold">{habit.streakCount}</span>
+                        <span className="text-orange-200 text-xs">STREAK</span>
+                      </span>
+                      <span className="text-yellow-400">●</span>
+                      <span className="flex items-center space-x-1">
+                        <span className="text-yellow-400">⭐</span>
+                        <span className="text-yellow-300 font-semibold">{habit.xpEarned}</span>
+                        <span className="text-yellow-200 text-xs">XP</span>
+                      </span>
                     </div>
                   </div>
                 </div>
-                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                   habit.completedToday
-                    ? 'bg-green-500 border-green-500 scale-110'
-                    : 'border-white/50 hover:border-white/80'
+                    ? 'bg-green-500/80 border-green-400 scale-110 neon-green shadow-lg shadow-green-500/50'
+                    : 'border-cyan-400/50 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/30'
                 }`}>
-                  {habit.completedToday && <span className="text-white text-lg">✓</span>}
+                  {habit.completedToday ? (
+                    <span className="text-white text-2xl font-bold">✓</span>
+                  ) : (
+                    <div className="w-6 h-6 border-2 border-cyan-400/30 rounded-full"></div>
+                  )}
                 </div>
               </div>
             ))}
@@ -311,27 +332,35 @@ export default function Home() {
 
         {/* Badges */}
         <div className="glow-card p-6 mb-6">
-          <h3 className="text-xl font-bold text-white mb-4">🏆 Achievements</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <h3 className="text-xl font-bold neon-pink mb-6 tracking-wider text-center">🏆 ACHIEVEMENT MATRIX 🏆</h3>
+          <div className="grid grid-cols-2 gap-4">
             {getUnlockedBadges().map((badge) => (
-              <div key={badge.id} className="streak-badge p-3 rounded-lg text-center relative">
-                <div className="text-2xl mb-1">{badge.icon}</div>
-                <div className="text-white font-medium text-sm">{badge.name}</div>
-                {badge.unlockedDate === getTodayKey() && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-                )}
+              <div key={badge.id} className="streak-badge p-4 rounded-lg text-center relative border border-pink-500/30">
+                <div className="text-3xl mb-2 relative">
+                  {badge.icon}
+                  {badge.unlockedDate === getTodayKey() && (
+                    <>
+                      <div className="absolute -inset-2 border-2 border-yellow-400 rounded-full animate-ping"></div>
+                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
+                    </>
+                  )}
+                </div>
+                <div className="text-white font-bold text-xs tracking-widest">{badge.name.toUpperCase()}</div>
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-50"></div>
               </div>
             ))}
             {userData.badges.filter(b => !b.unlocked).map((badge) => (
-              <div key={badge.id} className="p-3 rounded-lg text-center bg-white/5 border border-white/20 opacity-50">
-                <div className="text-2xl mb-1 grayscale">{badge.icon}</div>
-                <div className="text-white/50 font-medium text-sm">{badge.name}</div>
+              <div key={badge.id} className="p-4 rounded-lg text-center bg-gray-900/50 border border-gray-700/50 opacity-40 hover:opacity-60 transition-opacity">
+                <div className="text-3xl mb-2 grayscale filter blur-sm">{badge.icon}</div>
+                <div className="text-gray-400 font-medium text-xs tracking-widest">{badge.name.toUpperCase()}</div>
+                <div className="text-xs text-gray-500 mt-1">LOCKED</div>
               </div>
             ))}
           </div>
           {getUnlockedBadges().length === 0 && (
-            <div className="text-center text-white/70 py-4">
-              Complete habits to unlock badges! 🏆
+            <div className="text-center text-cyan-300 py-6 border border-cyan-500/30 rounded-lg bg-cyan-500/10 mt-4">
+              <div className="neon-text text-lg font-bold mb-2">NO ACHIEVEMENTS YET</div>
+              <div className="text-cyan-200 text-sm">Complete missions to unlock badges! ⚡</div>
             </div>
           )}
         </div>
