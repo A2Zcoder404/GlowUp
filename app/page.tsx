@@ -108,7 +108,6 @@ const calculateXPFromProgress = (habit: Habit): number => {
   return Math.floor(progressRatio * baseXP) // Proportional XP
 }
 
-<<<<<<< HEAD
 const getTargetOptions = (type: string) => {
   switch (type) {
     case 'water':
@@ -124,8 +123,6 @@ const getTargetOptions = (type: string) => {
   }
 }
 
-=======
->>>>>>> origin/main
 export default function Home() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -154,12 +151,9 @@ export default function Home() {
 
       if (authUser) {
         console.log('User authenticated:', authUser.email)
-<<<<<<< HEAD
         console.log('User ID:', authUser.uid.substring(0, 8) + '...')
-=======
         // Load user data when authenticated
         loadUserDataForUser()
->>>>>>> origin/main
       } else {
         console.log('User signed out - preserving data for re-login')
 
@@ -183,9 +177,8 @@ export default function Home() {
     }
   }, [])
 
-<<<<<<< HEAD
-  // Load data from Firebase/localStorage on mount (authenticated users only)
-  useEffect(() => {
+  // Load user data function with enhanced security
+  const loadUserDataForUser = async () => {
     // Only load data if user is authenticated
     if (!user) {
       console.log('No authenticated user - skipping data load')
@@ -200,17 +193,17 @@ export default function Home() {
       console.log('No existing user data found')
     }
 
-    const loadData = async () => {
-      setIsLoading(true)
+    setIsLoading(true)
 
-      // Verify user authentication
-      const currentUserInfo = getCurrentUserInfo()
-      if (!currentUserInfo.isAuthenticated) {
-        console.error('User authentication verification failed')
-        setIsLoading(false)
-        return
-      }
+    // Verify user authentication
+    const currentUserInfo = getCurrentUserInfo()
+    if (!currentUserInfo.isAuthenticated) {
+      console.error('User authentication verification failed')
+      setIsLoading(false)
+      return
+    }
 
+    try {
       // Set loading timeout to prevent infinite loading
       const loadingTimeout = setTimeout(() => {
         console.warn('Loading timeout reached, using default data')
@@ -225,79 +218,20 @@ export default function Home() {
         setTimeout(() => setToastMessage(''), 3000)
         setIsLoading(false)
       }, 10000) // 10 second timeout
-=======
-  // Load user data function
-  const loadUserDataForUser = async () => {
-    setIsLoading(true)
-    console.log('Loading user data...')
 
-    try {
       const savedData = await loadUserData()
->>>>>>> origin/main
+      clearTimeout(loadingTimeout)
 
       if (savedData) {
-        console.log('User data loaded from database')
+        // Verify data ownership before using it
+        if (!verifyDataOwnership(savedData, currentUserInfo.uid!)) {
+          console.error('Data ownership verification failed - using default data')
+          throw new Error('Unauthorized data access')
+        }
+
         // Check for new day and reset progress
         const updatedData = checkAndResetDailyProgress(savedData)
 
-<<<<<<< HEAD
-        if (savedData) {
-          // Verify data ownership before using it
-          if (!verifyDataOwnership(savedData, currentUserInfo.uid!)) {
-            console.error('Data ownership verification failed - using default data')
-            throw new Error('Unauthorized data access')
-          }
-
-          // Check for new day and reset progress
-          const updatedData = checkAndResetDailyProgress(savedData)
-
-          // Add any missing badges
-          const currentBadgeIds = updatedData.badges.map(b => b.id)
-          const initialBadges = getInitialBadges()
-          const missingBadges = initialBadges.filter(b => !currentBadgeIds.includes(b.id))
-
-          if (missingBadges.length > 0) {
-            updatedData.badges.push(...missingBadges)
-          }
-
-          setUserData(updatedData)
-
-          // Save back to Firebase if we made changes (non-blocking)
-          if (updatedData !== savedData) {
-            saveUserData(updatedData).catch(error =>
-              console.warn('Background save failed:', error)
-            )
-          }
-
-          // Show connection status
-          setToastMessage('✅ Secure data loaded!')
-          setTimeout(() => setToastMessage(''), 2000)
-        } else {
-          // Initialize with default data for new user
-          const initialData: UserData = {
-            habits: getInitialHabits(),
-            totalXP: 0,
-            level: 1,
-            badges: getInitialBadges(),
-            lastVisitDate: getTodayKey(),
-            userId: currentUserInfo.uid // Add user ID for security
-          }
-          setUserData(initialData)
-
-          // Save to Firebase in background (non-blocking)
-          saveUserData(initialData).catch(error =>
-            console.warn('Initial save failed:', error)
-          )
-
-          // Welcome new user
-          setToastMessage(`🎮 Welcome to GlowUp, ${currentUserInfo.email?.split('@')[0] || 'User'}!`)
-          setTimeout(() => setToastMessage(''), 3000)
-        }
-      } catch (error) {
-        console.error('Error loading user data:', error)
-        // Use default data and show security warning
-        setUserData({
-=======
         // Add any missing badges
         const currentBadgeIds = updatedData.badges.map(b => b.id)
         const initialBadges = getInitialBadges()
@@ -316,24 +250,18 @@ export default function Home() {
           )
         }
 
-        setToastMessage('✅ Welcome back!')
+        // Show connection status
+        setToastMessage('✅ Secure data loaded!')
         setTimeout(() => setToastMessage(''), 2000)
       } else {
-        console.log('No existing data, initializing with defaults')
-        // Initialize with default data
+        // Initialize with default data for new user
         const initialData: UserData = {
->>>>>>> origin/main
           habits: getInitialHabits(),
           totalXP: 0,
           level: 1,
           badges: getInitialBadges(),
-<<<<<<< HEAD
           lastVisitDate: getTodayKey(),
-          userId: currentUserInfo.uid
-        })
-        setToastMessage('⚠️ Security error - using fresh data')
-=======
-          lastVisitDate: getTodayKey()
+          userId: currentUserInfo.uid // Add user ID for security
         }
         setUserData(initialData)
 
@@ -342,13 +270,22 @@ export default function Home() {
           console.warn('Initial save failed:', error)
         )
 
-        setToastMessage('🎮 Welcome to GlowUp!')
->>>>>>> origin/main
+        // Welcome new user
+        setToastMessage(`🎮 Welcome to GlowUp, ${currentUserInfo.email?.split('@')[0] || 'User'}!`)
         setTimeout(() => setToastMessage(''), 3000)
       }
     } catch (error) {
-      console.error('Error loading data:', error)
-      setToastMessage('⚠️ Using offline mode')
+      console.error('Error loading user data:', error)
+      // Use default data and show security warning
+      setUserData({
+        habits: getInitialHabits(),
+        totalXP: 0,
+        level: 1,
+        badges: getInitialBadges(),
+        lastVisitDate: getTodayKey(),
+        userId: currentUserInfo.uid
+      })
+      setToastMessage('⚠️ Security error - using fresh data')
       setTimeout(() => setToastMessage(''), 3000)
     }
 
@@ -553,14 +490,10 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4 text-sm">
               <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-<<<<<<< HEAD
               <span className="text-cyan-400 font-bold">DATA PERSISTED</span>
               <div className="text-xs text-gray-400">
                 XP: {userData.totalXP} • LVL: {userData.level}
               </div>
-=======
-              <span className="text-cyan-400 font-bold">CONNECTED</span>
->>>>>>> origin/main
               <button
                 onClick={handleSignOut}
                 className="text-xs text-gray-400 hover:text-red-400 transition-colors font-medium"
