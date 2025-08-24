@@ -296,3 +296,50 @@ export const getInitialBadges = (): Badge[] => [
     unlocked: false
   }
 ];
+
+// Clear user-specific data on sign out (security measure)
+export const clearUserData = (userId?: string): void => {
+  try {
+    if (userId) {
+      // Clear specific user's data
+      const userSpecificKey = `glowup-data-${userId}`;
+      localStorage.removeItem(userSpecificKey);
+      console.log(`Cleared data for user: ${userId.substring(0, 8)}...`);
+    } else {
+      // Clear any old non-user-specific data (legacy cleanup)
+      localStorage.removeItem('glowup-data');
+      localStorage.removeItem('glowup-user-id');
+      console.log('Cleared legacy localStorage data');
+    }
+  } catch (error) {
+    console.warn('Error clearing user data:', error);
+  }
+};
+
+// Get current authenticated user info (safe exposure)
+export const getCurrentUserInfo = () => {
+  const user = auth?.currentUser;
+  if (user) {
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      isAuthenticated: true
+    };
+  }
+  return {
+    uid: null,
+    email: null,
+    displayName: null,
+    isAuthenticated: false
+  };
+};
+
+// Security check: Verify user owns the data
+export const verifyDataOwnership = (userData: UserData, expectedUserId: string): boolean => {
+  if (userData.userId && userData.userId !== expectedUserId) {
+    console.error('Data ownership verification failed');
+    return false;
+  }
+  return true;
+};
