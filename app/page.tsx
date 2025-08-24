@@ -10,9 +10,11 @@ import {
   checkAndResetDailyProgress,
   getInitialHabits,
   getInitialBadges,
-  clearUserData,
+  clearSessionData,
   getCurrentUserInfo,
   verifyDataOwnership,
+  hasUserData,
+  getUserDataStats,
   type UserData,
   type Habit,
   type Badge
@@ -149,20 +151,12 @@ export default function Home() {
         console.log('User authenticated:', authUser.email)
         console.log('User ID:', authUser.uid.substring(0, 8) + '...')
       } else {
-        console.log('User signed out - clearing user data')
+        console.log('User signed out - preserving data for re-login')
 
-        // Get current user info before clearing
-        const currentUserInfo = getCurrentUserInfo()
+        // Clear only session data, preserve user data for re-login
+        clearSessionData()
 
-        // Clear user-specific data
-        if (currentUserInfo.uid) {
-          clearUserData(currentUserInfo.uid)
-        }
-
-        // Clear any legacy data
-        clearUserData()
-
-        // Reset state to initial values
+        // Reset state to initial values (but don't clear localStorage)
         setUserData({
           habits: getInitialHabits(),
           totalXP: 0,
@@ -182,6 +176,14 @@ export default function Home() {
     if (!user) {
       console.log('No authenticated user - skipping data load')
       return
+    }
+
+    // Log user data stats for debugging
+    const dataStats = getUserDataStats()
+    if (dataStats) {
+      console.log('User data stats:', dataStats)
+    } else {
+      console.log('No existing user data found')
     }
 
     const loadData = async () => {
@@ -302,18 +304,17 @@ export default function Home() {
 
   const handleSignOut = async () => {
     try {
-      // Get user info before signing out
-      const currentUserInfo = getCurrentUserInfo()
+      // Save current data before signing out
+      console.log('Saving data before sign out...')
+      await saveUserData(userData)
 
       // Sign out from Firebase Auth
       await logOut()
 
-      // Clear user-specific data
-      if (currentUserInfo.uid) {
-        clearUserData(currentUserInfo.uid)
-      }
+      // Clear only session data (preserve user data for re-login)
+      clearSessionData()
 
-      setToastMessage('👋 Signed out securely!')
+      setToastMessage('👋 Data saved & signed out!')
       setTimeout(() => setToastMessage(''), 2000)
     } catch (error) {
       console.error('Sign out error:', error)
