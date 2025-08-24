@@ -18,13 +18,14 @@ const validateAuth = () => {
   if (!auth) {
     throw new Error('Firebase Auth is not initialized. Please check your Firebase configuration.');
   }
+  return auth;
 };
 
 // Sign in with email and password
 export const signIn = async (email: string, password: string): Promise<AuthUser> => {
   try {
-    validateAuth();
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const authInstance = validateAuth();
+    const userCredential = await signInWithEmailAndPassword(authInstance, email, password);
     return {
       uid: userCredential.user.uid,
       email: userCredential.user.email,
@@ -50,16 +51,16 @@ export const signIn = async (email: string, password: string): Promise<AuthUser>
 // Sign up with email and password
 export const signUp = async (email: string, password: string): Promise<AuthUser> => {
   try {
-    validateAuth();
+    const authInstance = validateAuth();
 
     console.log('🚀 Attempting sign up for:', email);
     console.log('🔧 Auth config:', {
-      apiKey: auth.app.options.apiKey?.substring(0, 10) + '...',
-      authDomain: auth.app.options.authDomain,
-      projectId: auth.app.options.projectId
+      apiKey: authInstance.app.options.apiKey?.substring(0, 10) + '...',
+      authDomain: authInstance.app.options.authDomain,
+      projectId: authInstance.app.options.projectId
     });
 
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
 
     console.log('✅ Sign up successful');
     return {
@@ -107,8 +108,8 @@ export const signUp = async (email: string, password: string): Promise<AuthUser>
 // Sign out
 export const logOut = async (): Promise<void> => {
   try {
-    validateAuth();
-    await signOut(auth);
+    const authInstance = validateAuth();
+    await signOut(authInstance);
   } catch (error: any) {
     console.error('Sign out error:', error);
     throw new Error(error.message || 'Failed to sign out');
@@ -118,8 +119,8 @@ export const logOut = async (): Promise<void> => {
 // Listen to auth state changes
 export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => {
   try {
-    validateAuth();
-    return onAuthStateChanged(auth, (user: User | null) => {
+    const authInstance = validateAuth();
+    return onAuthStateChanged(authInstance, (user: User | null) => {
       if (user) {
         callback({
           uid: user.uid,
