@@ -226,6 +226,7 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [showTargetModal, setShowTargetModal] = useState<string | null>(null)
   const [showProgressModal, setShowProgressModal] = useState<string | null>(null)
+  const [toastMessage, setToastMessage] = useState<string>('')
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -307,6 +308,15 @@ export default function Home() {
           // Calculate new XP based on progress
           const newHabit = { ...habit, progress: newProgress }
           const newXP = calculateXPFromProgress(newHabit)
+
+          // Show feedback message
+          if (targetMet && !wasTargetMet) {
+            setToastMessage(`🎉 ${habit.name} completed! +${newXP} XP earned!`)
+            setTimeout(() => setToastMessage(''), 3000)
+          } else if (newProgress > habit.progress) {
+            setToastMessage(`📈 ${habit.name} progress updated to ${newProgress}${habit.progressUnit}`)
+            setTimeout(() => setToastMessage(''), 2000)
+          }
 
           return {
             ...habit,
@@ -643,7 +653,12 @@ export default function Home() {
           </div>
         )}
 
-        {/* Modals temporarily disabled - will be re-implemented */}
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="fixed top-4 right-4 z-50 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-3 rounded-lg font-bold shadow-lg animate-bounce">
+            {toastMessage}
+          </div>
+        )}
       </div>
     </div>
   )
