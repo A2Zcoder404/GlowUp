@@ -198,9 +198,9 @@ export default function SettingsModal({ habit, isOpen, onClose, onUpdateTarget }
               
               <div className="grid grid-cols-1 gap-3">
                 {targetOptions.map((option) => {
-                  const optionXP = calculateXPFromProgress(habit, option.value)
+                  const baseXP = option.baseXP
                   const isSelected = selectedTarget === option.value && !showCustom
-                  
+
                   return (
                     <button
                       key={option.value}
@@ -220,8 +220,8 @@ export default function SettingsModal({ habit, isOpen, onClose, onUpdateTarget }
                           <div className="text-sm opacity-80">{option.description}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-yellow-400 font-bold">⭐ {optionXP} XP</div>
-                          <div className="text-xs text-gray-400">current progress</div>
+                          <div className="text-yellow-400 font-bold">⭐ {baseXP} XP</div>
+                          <div className="text-xs text-gray-400">base reward</div>
                         </div>
                       </div>
                     </button>
