@@ -10,6 +10,9 @@ import {
   checkAndResetDailyProgress,
   getInitialHabits,
   getInitialBadges,
+  clearUserData,
+  getCurrentUserInfo,
+  verifyDataOwnership,
   type UserData,
   type Habit,
   type Badge
