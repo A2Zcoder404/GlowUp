@@ -70,36 +70,50 @@ const getXPProgress = (xp: number, level: number) => {
   return xp - totalXPForPreviousLevels
 }
 
+// Get base XP for a specific target value
+const getBaseXPForTarget = (type: string, targetValue: number): number => {
+  const options = getTargetOptions(type)
+  const option = options.find(opt => opt.value === targetValue)
+  if (option) {
+    return option.baseXP
+  }
+
+  // For custom targets, calculate based on closest preset
+  const sortedOptions = options.sort((a, b) => Math.abs(a.value - targetValue) - Math.abs(b.value - targetValue))
+  if (sortedOptions.length > 0) {
+    // Scale XP based on target difficulty
+    const closest = sortedOptions[0]
+    const ratio = targetValue / closest.value
+    return Math.round(closest.baseXP * ratio)
+  }
+
+  return 15 // Default fallback
+}
+
 const calculateXPFromProgress = (habit: Habit): number => {
+  const baseXP = getBaseXPForTarget(habit.type, habit.target)
   const progressRatio = habit.progress / habit.target
 
-  if (habit.type === 'water') {
-    if (progressRatio >= 1) return 25 // Full target
-    if (progressRatio >= 0.75) return 20 // 75% target
-    if (progressRatio >= 0.5) return 15 // 50% target
-    if (progressRatio >= 0.25) return 10 // 25% target
-    return Math.floor(progressRatio * 25) // Proportional
-  } else {
-    // For exercise, meditation, reading
-    if (progressRatio >= 2) return 30 // 2x target
-    if (progressRatio >= 1.5) return 25 // 1.5x target
-    if (progressRatio >= 1) return 20 // Full target
-    if (progressRatio >= 0.75) return 15 // 75% target
-    if (progressRatio >= 0.5) return 10 // 50% target
-    return Math.floor(progressRatio * 20) // Proportional
-  }
+  // Calculate XP based on progress ratio
+  if (progressRatio >= 2) return Math.round(baseXP * 1.5) // 150% XP for 200% completion
+  if (progressRatio >= 1.5) return Math.round(baseXP * 1.25) // 125% XP for 150% completion
+  if (progressRatio >= 1) return baseXP // Full XP for 100% completion
+  if (progressRatio >= 0.75) return Math.round(baseXP * 0.75) // 75% XP
+  if (progressRatio >= 0.5) return Math.round(baseXP * 0.5) // 50% XP
+  if (progressRatio >= 0.25) return Math.round(baseXP * 0.25) // 25% XP
+  return Math.floor(progressRatio * baseXP) // Proportional XP
 }
 
 const getTargetOptions = (type: string) => {
   switch (type) {
     case 'water':
-      return [{ value: 2, label: '2L' }, { value: 3, label: '3L' }, { value: 4, label: '4L' }, { value: 6, label: '6L' }]
+      return [{ value: 2, label: '2L', baseXP: 10 }, { value: 3, label: '3L', baseXP: 15 }, { value: 4, label: '4L', baseXP: 20 }, { value: 6, label: '6L', baseXP: 25 }]
     case 'exercise':
-      return [{ value: 30, label: '30min' }, { value: 60, label: '1hr' }, { value: 90, label: '1.5hr' }, { value: 120, label: '2hr' }]
+      return [{ value: 30, label: '30min', baseXP: 10 }, { value: 60, label: '1hr', baseXP: 15 }, { value: 90, label: '1.5hr', baseXP: 20 }, { value: 120, label: '2hr', baseXP: 25 }]
     case 'meditation':
-      return [{ value: 15, label: '15min' }, { value: 30, label: '30min' }, { value: 45, label: '45min' }, { value: 60, label: '1hr' }]
+      return [{ value: 15, label: '15min', baseXP: 10 }, { value: 30, label: '30min', baseXP: 15 }, { value: 45, label: '45min', baseXP: 20 }, { value: 60, label: '1hr', baseXP: 25 }]
     case 'reading':
-      return [{ value: 30, label: '30min' }, { value: 60, label: '1hr' }, { value: 90, label: '1.5hr' }, { value: 120, label: '2hr' }]
+      return [{ value: 30, label: '30min', baseXP: 10 }, { value: 60, label: '1hr', baseXP: 15 }, { value: 90, label: '1.5hr', baseXP: 20 }, { value: 120, label: '2hr', baseXP: 25 }]
     default:
       return []
   }
