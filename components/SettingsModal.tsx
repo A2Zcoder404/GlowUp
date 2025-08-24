@@ -59,24 +59,38 @@ const getTargetOptions = (type: string) => {
   }
 }
 
-const calculateXPFromProgress = (habit: Habit, newTarget: number): number => {
-  const progressRatio = habit.progress / newTarget
-  
-  if (habit.type === 'water') {
-    if (progressRatio >= 1) return 25 // Full target
-    if (progressRatio >= 0.75) return 20 // 75% target
-    if (progressRatio >= 0.5) return 15 // 50% target
-    if (progressRatio >= 0.25) return 10 // 25% target
-    return Math.floor(progressRatio * 25) // Proportional
-  } else {
-    // For exercise, meditation, reading
-    if (progressRatio >= 2) return 30 // 2x target
-    if (progressRatio >= 1.5) return 25 // 1.5x target
-    if (progressRatio >= 1) return 20 // Full target
-    if (progressRatio >= 0.75) return 15 // 75% target
-    if (progressRatio >= 0.5) return 10 // 50% target
-    return Math.floor(progressRatio * 20) // Proportional
+// Get base XP for a specific target value
+const getBaseXPForTarget = (type: string, targetValue: number): number => {
+  const options = getTargetOptions(type)
+  const option = options.find(opt => opt.value === targetValue)
+  if (option) {
+    return option.baseXP
   }
+
+  // For custom targets, calculate based on closest preset
+  const sortedOptions = options.sort((a, b) => Math.abs(a.value - targetValue) - Math.abs(b.value - targetValue))
+  if (sortedOptions.length > 0) {
+    // Scale XP based on target difficulty
+    const closest = sortedOptions[0]
+    const ratio = targetValue / closest.value
+    return Math.round(closest.baseXP * ratio)
+  }
+
+  return 15 // Default fallback
+}
+
+const calculateXPFromProgress = (habit: Habit, newTarget: number): number => {
+  const baseXP = getBaseXPForTarget(habit.type, newTarget)
+  const progressRatio = habit.progress / newTarget
+
+  // Calculate XP based on progress ratio
+  if (progressRatio >= 2) return Math.round(baseXP * 1.5) // 150% XP for 200% completion
+  if (progressRatio >= 1.5) return Math.round(baseXP * 1.25) // 125% XP for 150% completion
+  if (progressRatio >= 1) return baseXP // Full XP for 100% completion
+  if (progressRatio >= 0.75) return Math.round(baseXP * 0.75) // 75% XP
+  if (progressRatio >= 0.5) return Math.round(baseXP * 0.5) // 50% XP
+  if (progressRatio >= 0.25) return Math.round(baseXP * 0.25) // 25% XP
+  return Math.floor(progressRatio * baseXP) // Proportional XP
 }
 
 const getXPRangeForTarget = (type: string, target: number) => {
