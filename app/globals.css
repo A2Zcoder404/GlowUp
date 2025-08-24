@@ -255,3 +255,77 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #ff00ff, #00ffff);
 }
+
+/* Additional utility classes */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+.delay-600 {
+  animation-delay: 0.6s;
+}
+
+/* Glitch effect for extra gamification */
+.glitch {
+  position: relative;
+  animation: glitch 2s infinite;
+}
+
+@keyframes glitch {
+  0%, 100% {
+    text-shadow:
+      0.05em 0 0 #00ffff,
+      -0.05em -0.025em 0 #ff00ff,
+      0.025em 0.05em 0 #ffff00;
+  }
+  15% {
+    text-shadow:
+      0.05em 0 0 #00ffff,
+      -0.05em -0.025em 0 #ff00ff,
+      0.025em 0.05em 0 #ffff00;
+  }
+  16% {
+    text-shadow:
+      -0.05em -0.025em 0 #00ffff,
+      0.025em 0.025em 0 #ff00ff,
+      -0.05em -0.05em 0 #ffff00;
+  }
+  49% {
+    text-shadow:
+      -0.05em -0.025em 0 #00ffff,
+      0.025em 0.025em 0 #ff00ff,
+      -0.05em -0.05em 0 #ffff00;
+  }
+  50% {
+    text-shadow:
+      0.025em 0.05em 0 #00ffff,
+      0.05em 0 0 #ff00ff,
+      0 -0.05em 0 #ffff00;
+  }
+  99% {
+    text-shadow:
+      0.025em 0.05em 0 #00ffff,
+      0.05em 0 0 #ff00ff,
+      0 -0.05em 0 #ffff00;
+  }
+}
