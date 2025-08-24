@@ -285,6 +285,58 @@ h1, h2, h3, h4, h5, h6 {
   animation-delay: 0.6s;
 }
 
+/* Mission dashboard specific styles */
+.mission-card {
+  position: relative;
+  background: rgba(0, 30, 60, 0.6);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.mission-card:hover {
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow:
+    0 0 25px rgba(0, 255, 255, 0.3),
+    0 0 50px rgba(0, 255, 255, 0.1);
+}
+
+.mission-complete {
+  background: rgba(0, 255, 0, 0.15);
+  border-color: rgba(0, 255, 0, 0.5);
+  box-shadow:
+    0 0 25px rgba(0, 255, 0, 0.3),
+    0 0 50px rgba(0, 255, 0, 0.1);
+}
+
+.progress-bar-glow {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.target-button {
+  background: linear-gradient(45deg, rgba(255, 0, 255, 0.2), rgba(0, 255, 255, 0.2));
+  border: 1px solid rgba(255, 0, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.target-button:hover {
+  background: linear-gradient(45deg, rgba(255, 0, 255, 0.3), rgba(0, 255, 255, 0.3));
+  border-color: rgba(255, 0, 255, 0.6);
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+}
+
+.update-button {
+  background: linear-gradient(45deg, rgba(0, 255, 255, 0.2), rgba(0, 255, 0, 0.2));
+  border: 1px solid rgba(0, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.update-button:hover {
+  background: linear-gradient(45deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 0, 0.3));
+  border-color: rgba(0, 255, 255, 0.6);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
 /* Glitch effect for extra gamification */
 .glitch {
   position: relative;
