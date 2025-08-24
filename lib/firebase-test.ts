@@ -3,14 +3,18 @@ import { connectAuthEmulator } from 'firebase/auth';
 
 export const testFirebaseConnection = async () => {
   console.log('🔥 Testing Firebase Connection...');
-  
+
   try {
     // Check if app is initialized
     if (!app) {
       console.error('❌ Firebase app not initialized');
       return false;
     }
-    console.log('��� Firebase app initialized');
+    console.log('✅ Firebase app initialized');
+    console.log('📱 App details:', {
+      name: app.name,
+      options: app.options
+    });
 
     // Check if auth is initialized
     if (!auth) {
@@ -22,13 +26,41 @@ export const testFirebaseConnection = async () => {
     // Log current auth state
     console.log('🔍 Auth state:', {
       currentUser: auth.currentUser,
-      config: auth.config,
       app: auth.app.name
     });
 
-    // Test auth connection by checking the config
-    const settings = auth.settings;
-    console.log('⚙️ Auth settings:', settings);
+    // Test Firebase project connectivity
+    console.log('🌐 Testing Firebase project connectivity...');
+
+    // Check if we can reach Firebase Auth REST API
+    const testUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${app.options.apiKey}`;
+    console.log('🔗 Testing URL:', testUrl);
+
+    try {
+      const response = await fetch(testUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          password: 'test123',
+          returnSecureToken: true
+        })
+      });
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('❌ API Error:', errorData);
+      } else {
+        console.log('✅ Firebase API is reachable');
+      }
+    } catch (fetchError) {
+      console.error('❌ Network fetch failed:', fetchError);
+    }
 
     return true;
   } catch (error) {
