@@ -33,7 +33,7 @@ const motivationalQuotes = [
   "Your wellness journey is unique and beautiful! 🌸",
   "Every habit completed is a victory! 🏆",
   "Believe in the power of your daily choices! ⭐",
-  "You're stronger than you think! ��",
+  "You're stronger than you think! 💪",
   "Mindful moments create magical transformations! 🧘‍♀️",
   "Your health is your greatest wealth! 💎",
   "Celebrate every small win today! 🎉",
@@ -255,6 +255,12 @@ export default function Home() {
   }
 
   const updateHabitTarget = (id: string, newTarget: number) => {
+    const habit = userData.habits.find(h => h.id === id)
+    if (habit) {
+      setToastMessage(`🎯 ${habit.name} target updated to ${newTarget}${habit.targetUnit}!`)
+      setTimeout(() => setToastMessage(''), 2000)
+    }
+
     setUserData(prev => ({
       ...prev,
       habits: prev.habits.map(habit =>
