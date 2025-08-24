@@ -519,7 +519,7 @@ export default function Home() {
 
         {/* Badges */}
         <div className="glow-card p-6 mb-6">
-          <h3 className="text-xl font-bold neon-pink mb-6 tracking-wider text-center">🏆 ACHIEVEMENT MATRIX 🏆</h3>
+          <h3 className="text-xl font-bold neon-pink mb-6 tracking-wider text-center">�� ACHIEVEMENT MATRIX 🏆</h3>
           <div className="grid grid-cols-2 gap-4">
             {getUnlockedBadges().map((badge) => (
               <div key={badge.id} className="streak-badge p-4 rounded-lg text-center relative border border-pink-500/30">
@@ -587,6 +587,25 @@ export default function Home() {
             <div className="absolute top-40 left-1/6 transform -translate-x-1/2 animate-bounce delay-500 text-2xl neon-pink">💫</div>
             <div className="absolute top-35 right-1/6 transform translate-x-1/2 animate-bounce delay-600 text-2xl neon-text">🎊</div>
           </div>
+        )}
+
+        {/* Modals */}
+        {showTargetModal && (
+          <TargetModal
+            habit={userData.habits.find(h => h.id === showTargetModal)!}
+            isOpen={!!showTargetModal}
+            onClose={() => setShowTargetModal(null)}
+            onUpdateTarget={updateHabitTarget}
+          />
+        )}
+
+        {showProgressModal && (
+          <ProgressModal
+            habit={userData.habits.find(h => h.id === showProgressModal)!}
+            isOpen={!!showProgressModal}
+            onClose={() => setShowProgressModal(null)}
+            onUpdateProgress={updateHabitProgress}
+          />
         )}
       </div>
     </div>
