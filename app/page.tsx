@@ -254,13 +254,21 @@ export default function Home() {
       const today = getTodayKey()
       if (parsed.lastVisitDate !== today) {
         const resetHabits = parsed.habits.map(habit => {
-          const targetMet = habit.progress >= habit.target
+          const targetMet = (habit.progress || 0) >= (habit.target || 1)
           return {
             ...habit,
-            completedToday: false,
+            id: habit.id || '',
+            name: habit.name || '',
+            type: habit.type || 'water',
+            target: habit.target || 1,
+            targetUnit: habit.targetUnit || 'L',
             progress: 0, // Reset daily progress
-            // If user didn't meet target yesterday, reset streak
-            streakCount: targetMet && habit.lastCompletedDate === parsed.lastVisitDate ? habit.streakCount : 0
+            progressUnit: habit.progressUnit || habit.targetUnit || 'L',
+            streakCount: targetMet && habit.lastCompletedDate === parsed.lastVisitDate ? (habit.streakCount || 0) : 0,
+            completedToday: false,
+            xpEarned: habit.xpEarned || 0,
+            icon: habit.icon || '💧',
+            lastCompletedDate: habit.lastCompletedDate
           }
         })
 
@@ -425,7 +433,7 @@ export default function Home() {
         <div className="glow-card p-6 mb-6 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-pink-500/10 animate-pulse"></div>
           <div className="relative z-10">
-            <h3 className="text-lg font-bold neon-yellow mb-3 tracking-wider">⚡ DAILY MOTIVATION ���</h3>
+            <h3 className="text-lg font-bold neon-yellow mb-3 tracking-wider">⚡ DAILY MOTIVATION ⚡</h3>
             <p className="text-xl text-cyan-100 italic font-medium leading-relaxed">{todayQuote}</p>
           </div>
         </div>
