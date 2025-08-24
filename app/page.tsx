@@ -411,58 +411,109 @@ export default function Home() {
         {/* Habits */}
         <div className="glow-card p-6 mb-6">
           <h3 className="text-xl font-bold neon-text mb-6 tracking-wider text-center">⚡ TODAY'S MISSIONS ⚡</h3>
-          <div className="space-y-4">
-            {userData.habits.map(habit => (
-              <div
-                key={habit.id}
-                className={`habit-card flex items-center justify-between p-4 cursor-pointer transition-all duration-300 ${
-                  habit.completedToday
-                    ? 'habit-completed completion-animation'
-                    : 'hover:scale-102'
-                }`}
-                onClick={() => toggleHabit(habit.id)}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="text-3xl relative">
-                    {habit.icon}
-                    {habit.completedToday && (
-                      <div className="absolute -inset-1 rounded-full bg-green-400/30 animate-ping"></div>
-                    )}
-                  </div>
-                  <div>
-                    <div className={`font-bold text-lg ${
-                      habit.completedToday ? 'neon-green' : 'text-cyan-100'
+          <div className="space-y-6">
+            {userData.habits.map(habit => {
+              const progressPercentage = getProgressPercentage(habit)
+              const progressColor = getProgressColor(progressPercentage)
+
+              return (
+                <div
+                  key={habit.id}
+                  className={`habit-card p-4 transition-all duration-300 ${
+                    habit.completedToday
+                      ? 'habit-completed'
+                      : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-3xl relative">
+                        {habit.icon}
+                        {habit.completedToday && (
+                          <div className="absolute -inset-1 rounded-full bg-green-400/30 animate-ping"></div>
+                        )}
+                      </div>
+                      <div>
+                        <div className={`font-bold text-lg ${
+                          habit.completedToday ? 'neon-green' : 'text-cyan-100'
+                        }`}>
+                          {habit.name.toUpperCase()}
+                        </div>
+                        <div className="text-sm flex items-center space-x-3 mt-1">
+                          <span className="flex items-center space-x-1">
+                            <span className="text-orange-400">🔥</span>
+                            <span className="text-orange-300 font-semibold">{habit.streakCount}</span>
+                            <span className="text-orange-200 text-xs">STREAK</span>
+                          </span>
+                          <span className="text-yellow-400">●</span>
+                          <span className="flex items-center space-x-1">
+                            <span className="text-yellow-400">⭐</span>
+                            <span className="text-yellow-300 font-semibold">{habit.xpEarned}</span>
+                            <span className="text-yellow-200 text-xs">XP</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                      habit.completedToday
+                        ? 'bg-green-500/80 border-green-400 scale-110 neon-green shadow-lg shadow-green-500/50'
+                        : 'border-cyan-400/50'
                     }`}>
-                      {habit.name.toUpperCase()}
-                    </div>
-                    <div className="text-sm flex items-center space-x-3 mt-1">
-                      <span className="flex items-center space-x-1">
-                        <span className="text-orange-400">🔥</span>
-                        <span className="text-orange-300 font-semibold">{habit.streakCount}</span>
-                        <span className="text-orange-200 text-xs">STREAK</span>
-                      </span>
-                      <span className="text-yellow-400">●</span>
-                      <span className="flex items-center space-x-1">
-                        <span className="text-yellow-400">⭐</span>
-                        <span className="text-yellow-300 font-semibold">{habit.xpEarned}</span>
-                        <span className="text-yellow-200 text-xs">XP</span>
-                      </span>
+                      {habit.completedToday ? (
+                        <span className="text-white text-2xl font-bold">✓</span>
+                      ) : (
+                        <div className="w-6 h-6 border-2 border-cyan-400/30 rounded-full"></div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Progress Section */}
+                  <div className="mb-3">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-cyan-300 font-semibold">
+                        {habit.progress}{habit.progressUnit} / {habit.target}{habit.targetUnit}
+                      </span>
+                      <span className={`font-bold ${
+                        progressPercentage >= 100 ? 'neon-green' :
+                        progressPercentage >= 75 ? 'text-yellow-400' :
+                        'text-cyan-300'
+                      }`}>
+                        {progressPercentage.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-800/50 rounded-full h-3 border border-cyan-500/30">
+                      <div
+                        className={`h-3 rounded-full transition-all duration-500 ease-out bg-gradient-to-r ${progressColor}`}
+                        style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Control Buttons */}
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowProgressModal(habit.id)
+                      }}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-cyan-400/50 text-cyan-300 rounded-lg font-bold text-xs hover:from-blue-500/30 hover:to-cyan-500/30 hover:border-cyan-400 transition-all"
+                    >
+                      📊 UPDATE
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowTargetModal(habit.id)
+                      }}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-pink-400/50 text-pink-300 rounded-lg font-bold text-xs hover:from-purple-500/30 hover:to-pink-500/30 hover:border-pink-400 transition-all"
+                    >
+                      ⚙️ TARGET
+                    </button>
+                  </div>
                 </div>
-                <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-                  habit.completedToday
-                    ? 'bg-green-500/80 border-green-400 scale-110 neon-green shadow-lg shadow-green-500/50'
-                    : 'border-cyan-400/50 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/30'
-                }`}>
-                  {habit.completedToday ? (
-                    <span className="text-white text-2xl font-bold">✓</span>
-                  ) : (
-                    <div className="w-6 h-6 border-2 border-cyan-400/30 rounded-full"></div>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
