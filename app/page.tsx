@@ -312,22 +312,47 @@ export default function Home() {
 
   const handleSignOut = async () => {
     try {
-      // Save current data before signing out
+      // Try to save current data before signing out (don't block logout if this fails)
       console.log('Saving data before sign out...')
-      await saveUserData(userData)
+      try {
+        await saveUserData(userData)
+        console.log('Data saved successfully before logout')
+      } catch (saveError) {
+        console.warn('Failed to save data before logout, but continuing with logout:', saveError)
+        // Don't block logout if save fails
+      }
 
-      // Sign out from Firebase Auth
+      // Sign out from Firebase Auth (this should always work)
       await logOut()
+      console.log('Successfully signed out from Firebase')
 
       // Clear only session data (preserve user data for re-login)
       clearSessionData()
 
-      setToastMessage('👋 Data saved & signed out!')
+      setToastMessage('👋 Signed out successfully!')
       setTimeout(() => setToastMessage(''), 2000)
     } catch (error) {
-      console.error('Sign out error:', error)
-      setToastMessage('❌ Sign out failed')
-      setTimeout(() => setToastMessage(''), 3000)
+      console.error('Critical sign out error:', error)
+
+      // Force logout even if Firebase signOut fails
+      try {
+        clearSessionData()
+        // Reset user state manually
+        setUser(null)
+        setUserData({
+          habits: getInitialHabits(),
+          totalXP: 0,
+          level: 1,
+          badges: getInitialBadges(),
+          lastVisitDate: getTodayKey()
+        })
+        setToastMessage('👋 Forced logout successful!')
+        setTimeout(() => setToastMessage(''), 2000)
+      } catch (forceError) {
+        console.error('Force logout failed:', forceError)
+        setToastMessage('❌ Logout failed - please refresh the page')
+        setTimeout(() => setToastMessage(''), 3000)
+      }
     }
   }
 
