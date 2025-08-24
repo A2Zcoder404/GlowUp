@@ -514,10 +514,14 @@ export default function Home() {
                         <span className="text-orange-200 text-xs">STREAK</span>
                       </span>
                       <span className="text-yellow-400">●</span>
-                      <span className="flex items-center space-x-1">
+                      <span className={`flex items-center space-x-1 px-2 py-1 rounded-lg ${
+                        habit.xpEarned > 0 ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-gray-700/30'
+                      }`}>
                         <span className="text-yellow-400">⭐</span>
-                        <span className="text-yellow-300 font-semibold">{habit.xpEarned || 0}</span>
-                        <span className="text-yellow-200 text-xs">XP EARNED</span>
+                        <span className={`font-bold ${
+                          habit.xpEarned > 0 ? 'text-yellow-300 neon-text' : 'text-gray-400'
+                        }`}>{habit.xpEarned || 0}</span>
+                        <span className="text-yellow-200 text-xs">XP</span>
                       </span>
                         </div>
                       </div>
@@ -548,8 +552,8 @@ export default function Home() {
                             e.stopPropagation()
                             setShowSettingsModal(habit.id)
                           }}
-                          className="text-pink-400 font-bold hover:text-pink-300 transition-colors hover:scale-105 transform"
-                          title="Open Mission Settings"
+                          className="text-pink-400 font-bold hover:text-pink-300 transition-colors hover:scale-105 transform px-2 py-1 rounded-lg bg-pink-500/20 border border-pink-500/30 hover:bg-pink-500/30"
+                          title="Click to customize target (liters, hours, minutes)"
                         >
                           {habit.target}{habit.targetUnit} ⚙️
                         </button>
@@ -670,7 +674,7 @@ export default function Home() {
         {showConfetti && (
           <div className="fixed inset-0 pointer-events-none z-40">
             <div className="absolute top-10 left-1/2 transform -translate-x-1/2 animate-bounce text-5xl neon-yellow">⚡</div>
-            <div className="absolute top-20 left-1/4 transform -translate-x-1/2 animate-bounce delay-100 text-4xl neon-pink">💥</div>
+            <div className="absolute top-20 left-1/4 transform -translate-x-1/2 animate-bounce delay-100 text-4xl neon-pink">����</div>
             <div className="absolute top-15 right-1/4 transform translate-x-1/2 animate-bounce delay-200 text-4xl neon-text">⭐</div>
             <div className="absolute top-32 left-1/3 transform -translate-x-1/2 animate-bounce delay-300 text-3xl neon-green">🔥</div>
             <div className="absolute top-25 right-1/3 transform translate-x-1/2 animate-bounce delay-400 text-3xl neon-yellow">✨</div>
