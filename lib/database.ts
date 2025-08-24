@@ -54,59 +54,84 @@ const getUserId = (): string => {
 
 // Save user data to Firebase
 export const saveUserData = async (userData: UserData): Promise<void> => {
+  // Always save to localStorage as backup
   try {
-    const userId = getUserId();
-    const userRef = doc(db, 'users', userId);
-    
-    await setDoc(userRef, {
-      ...userData,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-    
-    console.log('User data saved successfully');
-  } catch (error) {
-    console.error('Error saving user data:', error);
-    // Fallback to localStorage if Firebase fails
     localStorage.setItem('glowup-data', JSON.stringify(userData));
+  } catch (localError) {
+    console.warn('localStorage save failed:', localError);
+  }
+
+  // Try Firebase only if we're in browser and have db connection
+  if (typeof window !== 'undefined' && db) {
+    try {
+      const userId = getUserId();
+      const userRef = doc(db, 'users', userId);
+
+      await setDoc(userRef, {
+        ...userData,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      console.log('User data saved to Firebase successfully');
+    } catch (error) {
+      console.warn('Firebase save failed, using localStorage backup:', error);
+    }
+  } else {
+    console.log('Firebase not available, using localStorage only');
   }
 };
 
 // Load user data from Firebase
 export const loadUserData = async (): Promise<UserData | null> => {
+  // First, try to load from localStorage as it's always available
+  let localData: UserData | null = null;
   try {
-    const userId = getUserId();
-    const userRef = doc(db, 'users', userId);
-    const docSnap = await getDoc(userRef);
-    
-    if (docSnap.exists()) {
-      const data = docSnap.data() as UserData;
-      console.log('User data loaded from Firebase');
-      return data;
-    } else {
-      console.log('No user data found in Firebase');
-      
-      // Try to migrate from localStorage
-      const localData = localStorage.getItem('glowup-data');
-      if (localData) {
-        const userData = JSON.parse(localData) as UserData;
-        console.log('Migrating data from localStorage to Firebase');
-        await saveUserData(userData);
-        return userData;
+    const localDataStr = localStorage.getItem('glowup-data');
+    if (localDataStr) {
+      localData = JSON.parse(localDataStr) as UserData;
+      console.log('Local data found');
+    }
+  } catch (localError) {
+    console.warn('localStorage read failed:', localError);
+  }
+
+  // Try Firebase only if we're in browser and have db connection
+  if (typeof window !== 'undefined' && db) {
+    try {
+      const userId = getUserId();
+      const userRef = doc(db, 'users', userId);
+
+      // Set a timeout for Firebase operations
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Firebase timeout')), 5000)
+      );
+
+      const docSnap = await Promise.race([getDoc(userRef), timeout]);
+
+      if (docSnap && typeof docSnap.exists === 'function' && docSnap.exists()) {
+        const firebaseData = docSnap.data() as UserData;
+        console.log('User data loaded from Firebase');
+        return firebaseData;
+      } else {
+        console.log('No user data found in Firebase, using local data if available');
+        if (localData) {
+          // Try to save local data to Firebase for future use
+          try {
+            await saveUserData(localData);
+            console.log('Local data migrated to Firebase');
+          } catch (saveError) {
+            console.warn('Failed to migrate local data to Firebase:', saveError);
+          }
+        }
+        return localData;
       }
-      
-      return null;
+    } catch (error) {
+      console.warn('Firebase load failed, using localStorage:', error);
+      return localData;
     }
-  } catch (error) {
-    console.error('Error loading user data:', error);
-    
-    // Fallback to localStorage
-    const localData = localStorage.getItem('glowup-data');
-    if (localData) {
-      console.log('Falling back to localStorage');
-      return JSON.parse(localData) as UserData;
-    }
-    
-    return null;
+  } else {
+    console.log('Firebase not available, using localStorage only');
+    return localData;
   }
 };
 
