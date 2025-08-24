@@ -39,6 +39,7 @@ export interface UserData {
   level: number
   badges: Badge[]
   lastVisitDate: string
+  userId?: string // User ID for data ownership verification
   createdAt?: Timestamp
   updatedAt?: Timestamp
 }
