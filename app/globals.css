@@ -1,0 +1,383 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Orbitron:wght@700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: radial-gradient(ellipse at center, #0d1421 0%, #0a0e1a 50%, #000510 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Animated background particles */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, #00ffff, transparent),
+    radial-gradient(2px 2px at 40px 70px, #ff00ff, transparent),
+    radial-gradient(1px 1px at 90px 40px, #00ff00, transparent),
+    radial-gradient(1px 1px at 130px 80px, #ffff00, transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: stars 20s linear infinite;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+@keyframes stars {
+  from { transform: translateY(0px); }
+  to { transform: translateY(-100px); }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.glow-card {
+  background: rgba(0, 20, 40, 0.8);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  box-shadow:
+    0 0 20px rgba(0, 255, 255, 0.2),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #00ffff, #ff00ff, #00ff00, #ffff00);
+  border-radius: 22px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glow-card:hover::before {
+  opacity: 0.7;
+}
+
+.habit-card {
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  background: rgba(0, 30, 60, 0.6);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.1);
+}
+
+.habit-card:hover {
+  box-shadow:
+    0 0 25px rgba(0, 255, 255, 0.4),
+    0 0 50px rgba(0, 255, 255, 0.2);
+  transform: translateY(-2px);
+  border-color: rgba(0, 255, 255, 0.5);
+}
+
+.habit-completed {
+  background: rgba(0, 255, 0, 0.2);
+  border-color: rgba(0, 255, 0, 0.5);
+  box-shadow:
+    0 0 25px rgba(0, 255, 0, 0.3),
+    0 0 50px rgba(0, 255, 0, 0.1);
+}
+
+.streak-badge {
+  background: linear-gradient(45deg, #ff00ff 0%, #00ffff 50%, #ff00ff 100%);
+  box-shadow:
+    0 0 20px rgba(255, 0, 255, 0.5),
+    0 0 40px rgba(0, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  animation: neon-pulse 2s ease-in-out infinite alternate;
+}
+
+.streak-badge:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 30px rgba(255, 0, 255, 0.7),
+    0 0 60px rgba(0, 255, 255, 0.5);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #00ffff 0%, #ff00ff 50%, #00ff00 100%);
+  box-shadow:
+    0 0 15px rgba(0, 255, 255, 0.6),
+    0 0 30px rgba(255, 0, 255, 0.4);
+  animation: progress-glow 2s ease-in-out infinite alternate;
+}
+
+.neon-text {
+  color: #00ffff;
+  text-shadow:
+    0 0 5px #00ffff,
+    0 0 10px #00ffff,
+    0 0 15px #00ffff,
+    0 0 20px #00ffff;
+}
+
+.neon-pink {
+  color: #ff00ff;
+  text-shadow:
+    0 0 5px #ff00ff,
+    0 0 10px #ff00ff,
+    0 0 15px #ff00ff;
+}
+
+.neon-green {
+  color: #00ff00;
+  text-shadow:
+    0 0 5px #00ff00,
+    0 0 10px #00ff00,
+    0 0 15px #00ff00;
+}
+
+.neon-yellow {
+  color: #ffff00;
+  text-shadow:
+    0 0 5px #ffff00,
+    0 0 10px #ffff00,
+    0 0 15px #ffff00;
+}
+
+@keyframes neon-pulse {
+  0% {
+    box-shadow:
+      0 0 20px rgba(255, 0, 255, 0.5),
+      0 0 40px rgba(0, 255, 255, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 0 30px rgba(255, 0, 255, 0.8),
+      0 0 60px rgba(0, 255, 255, 0.6);
+  }
+}
+
+@keyframes progress-glow {
+  0% {
+    box-shadow:
+      0 0 15px rgba(0, 255, 255, 0.6),
+      0 0 30px rgba(255, 0, 255, 0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 25px rgba(0, 255, 255, 0.9),
+      0 0 50px rgba(255, 0, 255, 0.7);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes neon-flicker {
+  0%, 100% {
+    text-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px currentColor;
+  }
+  50% {
+    text-shadow:
+      0 0 2px currentColor,
+      0 0 5px currentColor,
+      0 0 8px currentColor,
+      0 0 12px currentColor;
+  }
+}
+
+@keyframes glow-rotate {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
+.floating {
+  animation: float 3s ease-in-out infinite;
+}
+
+.neon-flicker {
+  animation: neon-flicker 2s ease-in-out infinite alternate;
+}
+
+.glow-rotate {
+  animation: glow-rotate 4s linear infinite;
+}
+
+.completion-animation {
+  animation: completion-flash 0.5s ease-in-out;
+}
+
+@keyframes completion-flash {
+  0% { background-color: rgba(0, 255, 0, 0.1); }
+  50% { background-color: rgba(0, 255, 0, 0.4); }
+  100% { background-color: rgba(0, 255, 0, 0.2); }
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 20, 40, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00ffff, #ff00ff);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff00ff, #00ffff);
+}
+
+/* Additional utility classes */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+.delay-600 {
+  animation-delay: 0.6s;
+}
+
+/* Mission dashboard specific styles */
+.mission-card {
+  position: relative;
+  background: rgba(0, 30, 60, 0.6);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.mission-card:hover {
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow:
+    0 0 25px rgba(0, 255, 255, 0.3),
+    0 0 50px rgba(0, 255, 255, 0.1);
+}
+
+.mission-complete {
+  background: rgba(0, 255, 0, 0.15);
+  border-color: rgba(0, 255, 0, 0.5);
+  box-shadow:
+    0 0 25px rgba(0, 255, 0, 0.3),
+    0 0 50px rgba(0, 255, 0, 0.1);
+}
+
+.progress-bar-glow {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.target-button {
+  background: linear-gradient(45deg, rgba(255, 0, 255, 0.2), rgba(0, 255, 255, 0.2));
+  border: 1px solid rgba(255, 0, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.target-button:hover {
+  background: linear-gradient(45deg, rgba(255, 0, 255, 0.3), rgba(0, 255, 255, 0.3));
+  border-color: rgba(255, 0, 255, 0.6);
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+}
+
+.update-button {
+  background: linear-gradient(45deg, rgba(0, 255, 255, 0.2), rgba(0, 255, 0, 0.2));
+  border: 1px solid rgba(0, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.update-button:hover {
+  background: linear-gradient(45deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 0, 0.3));
+  border-color: rgba(0, 255, 255, 0.6);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+/* Glitch effect for extra gamification */
+.glitch {
+  position: relative;
+  animation: glitch 2s infinite;
+}
+
+@keyframes glitch {
+  0%, 100% {
+    text-shadow:
+      0.05em 0 0 #00ffff,
+      -0.05em -0.025em 0 #ff00ff,
+      0.025em 0.05em 0 #ffff00;
+  }
+  15% {
+    text-shadow:
+      0.05em 0 0 #00ffff,
+      -0.05em -0.025em 0 #ff00ff,
+      0.025em 0.05em 0 #ffff00;
+  }
+  16% {
+    text-shadow:
+      -0.05em -0.025em 0 #00ffff,
+      0.025em 0.025em 0 #ff00ff,
+      -0.05em -0.05em 0 #ffff00;
+  }
+  49% {
+    text-shadow:
+      -0.05em -0.025em 0 #00ffff,
+      0.025em 0.025em 0 #ff00ff,
+      -0.05em -0.05em 0 #ffff00;
+  }
+  50% {
+    text-shadow:
+      0.025em 0.05em 0 #00ffff,
+      0.05em 0 0 #ff00ff,
+      0 -0.05em 0 #ffff00;
+  }
+  99% {
+    text-shadow:
+      0.025em 0.05em 0 #00ffff,
+      0.05em 0 0 #ff00ff,
+      0 -0.05em 0 #ffff00;
+  }
+}
