@@ -45,7 +45,7 @@ const motivationalQuotes = [
   "Every habit completed is a victory! 🏆",
   "Believe in the power of your daily choices! ⭐",
   "You're stronger than you think! 💪",
-  "Mindful moments create magical transformations! 🧘‍♀️",
+  "Mindful moments create magical transformations! 🧘‍���️",
   "Your health is your greatest wealth! 💎",
   "Celebrate every small win today! 🎉",
   "Consistency beats perfection every time! 🔥",
@@ -513,25 +513,34 @@ export default function Home() {
                   </div>
 
                   {/* Quick Progress Controls */}
-                  <div className="flex space-x-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        const quickAmount = habit.type === 'water' ? 0.5 : 30
+                        const quickAmount = habit.type === 'water' ? 0.5 : 15
                         updateHabitProgress(habit.id, habit.progress + quickAmount)
                       }}
-                      className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-400/50 text-green-300 rounded-lg font-bold text-xs hover:from-green-500/30 hover:to-blue-500/30 hover:border-green-400 transition-all"
+                      className="px-2 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-cyan-400/50 text-cyan-300 rounded-lg font-bold text-xs hover:from-blue-500/30 hover:to-cyan-500/30 hover:border-cyan-400 transition-all"
                     >
-                      ➕ ADD {habit.type === 'water' ? '0.5L' : '30min'}
+                      ➕ {habit.type === 'water' ? '0.5L' : '15m'}
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         updateHabitProgress(habit.id, habit.target)
                       }}
-                      className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-pink-400/50 text-pink-300 rounded-lg font-bold text-xs hover:from-purple-500/30 hover:to-pink-500/30 hover:border-pink-400 transition-all"
+                      className="px-2 py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-400/50 text-green-300 rounded-lg font-bold text-xs hover:from-green-500/30 hover:to-emerald-500/30 hover:border-green-400 transition-all"
                     >
-                      🎯 COMPLETE
+                      🎯 DONE
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        updateHabitProgress(habit.id, 0)
+                      }}
+                      className="px-2 py-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-400/50 text-red-300 rounded-lg font-bold text-xs hover:from-red-500/30 hover:to-pink-500/30 hover:border-red-400 transition-all"
+                    >
+                      🔄 RESET
                     </button>
                   </div>
                 </div>
