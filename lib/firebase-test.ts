@@ -80,3 +80,47 @@ export const getFirebaseConfig = () => {
     measurementId: "G-58MV5GK932"
   };
 };
+
+export const verifyFirebaseProject = async () => {
+  console.log('🔍 Verifying Firebase project configuration...');
+
+  const config = getFirebaseConfig();
+
+  // Test 1: Check if Firebase project exists
+  try {
+    const projectUrl = `https://firebase.googleapis.com/v1beta1/projects/${config.projectId}?key=${config.apiKey}`;
+    console.log('📡 Testing project existence:', projectUrl);
+
+    const response = await fetch(projectUrl);
+    console.log('📊 Project check response:', response.status, response.statusText);
+
+    if (response.status === 403) {
+      console.error('❌ API key does not have permission to access this project');
+      return false;
+    } else if (response.status === 404) {
+      console.error('❌ Firebase project does not exist');
+      return false;
+    } else if (!response.ok) {
+      console.error('❌ Project verification failed:', response.status);
+      return false;
+    }
+
+    console.log('✅ Firebase project exists and is accessible');
+  } catch (error) {
+    console.error('❌ Project verification network error:', error);
+    return false;
+  }
+
+  // Test 2: Check Auth domain accessibility
+  try {
+    const authDomainUrl = `https://${config.authDomain}`;
+    console.log('🌐 Testing auth domain:', authDomainUrl);
+
+    const response = await fetch(authDomainUrl, { mode: 'no-cors' });
+    console.log('🔐 Auth domain reachable');
+  } catch (error) {
+    console.error('❌ Auth domain test failed:', error);
+  }
+
+  return true;
+};
