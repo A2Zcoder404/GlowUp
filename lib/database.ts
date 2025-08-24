@@ -150,7 +150,7 @@ export const loadUserData = async (): Promise<UserData | null> => {
         const userRef = doc(db, 'users', userId);
 
         // Set a timeout for Firebase operations
-        const timeout = new Promise((_, reject) =>
+        const timeout = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Firebase timeout')), 3000)
         );
 
