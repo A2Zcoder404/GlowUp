@@ -65,100 +65,108 @@ const validateUserAuthentication = (): string => {
   return userId;
 };
 
-// Save user data to Firebase
+// Save user data to Firebase (authenticated users only)
 export const saveUserData = async (userData: UserData): Promise<void> => {
-  // Always save to localStorage as backup
   try {
-    localStorage.setItem('glowup-data', JSON.stringify(userData));
-  } catch (localError) {
-    console.warn('localStorage save failed:', localError);
-  }
+    // Validate user is authenticated
+    const userId = validateUserAuthentication();
 
-  // Try Firebase only if we're in browser and have db connection
-  if (typeof window !== 'undefined' && db && auth?.currentUser) {
-    try {
-      const userId = getUserId();
+    // Save to user-specific localStorage key
+    const userSpecificKey = `glowup-data-${userId}`;
+    localStorage.setItem(userSpecificKey, JSON.stringify(userData));
+
+    // Save to Firebase with user isolation
+    if (typeof window !== 'undefined' && db) {
       const userRef = doc(db, 'users', userId);
 
       await setDoc(userRef, {
         ...userData,
+        userId: userId, // Explicit user ID for extra security
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      console.log('User data saved to Firebase successfully');
-    } catch (error) {
-      console.warn('Firebase save failed (user may be offline):', error);
+      console.log(`User data saved successfully for user: ${userId.substring(0, 8)}...`);
     }
-  } else {
-    console.log('Firebase not available or user not authenticated, using localStorage only');
+  } catch (error) {
+    console.error('Failed to save user data:', error);
+    throw error;
   }
 };
 
-// Load user data from Firebase
+// Load user data from Firebase (authenticated users only)
 export const loadUserData = async (): Promise<UserData | null> => {
-  // First, try to load from localStorage as it's always available
-  let localData: UserData | null = null;
   try {
-    const localDataStr = localStorage.getItem('glowup-data');
-    if (localDataStr) {
-      localData = JSON.parse(localDataStr) as UserData;
-      console.log('Local data found');
-    }
-  } catch (localError) {
-    console.warn('localStorage read failed:', localError);
-  }
+    // Validate user is authenticated
+    const userId = validateUserAuthentication();
 
-  // Try Firebase only if we're in browser and have db connection
-  if (typeof window !== 'undefined' && db && auth?.currentUser) {
+    // Load from user-specific localStorage key
+    const userSpecificKey = `glowup-data-${userId}`;
+    let localData: UserData | null = null;
     try {
-      const userId = getUserId();
-      const userRef = doc(db, 'users', userId);
+      const localDataStr = localStorage.getItem(userSpecificKey);
+      if (localDataStr) {
+        localData = JSON.parse(localDataStr) as UserData;
+        console.log(`Local data found for user: ${userId.substring(0, 8)}...`);
+      }
+    } catch (localError) {
+      console.warn('localStorage read failed:', localError);
+    }
 
-      // Set a timeout for Firebase operations
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Firebase timeout')), 5000)
-      );
+    // Try Firebase with user isolation
+    if (typeof window !== 'undefined' && db) {
+      try {
+        const userRef = doc(db, 'users', userId);
 
-      const docSnap = await Promise.race([getDoc(userRef), timeout]);
+        // Set a timeout for Firebase operations
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Firebase timeout')), 5000)
+        );
 
-      if (docSnap && typeof docSnap.exists === 'function' && docSnap.exists()) {
-        const firebaseData = docSnap.data() as UserData;
-        console.log('User data loaded from Firebase');
-        return firebaseData;
-      } else {
-        console.log('No user data found in Firebase, using local data if available');
-        if (localData) {
-          // Try to save local data to Firebase for future use
-          try {
-            await saveUserData(localData);
-            console.log('Local data migrated to Firebase');
-          } catch (saveError) {
-            console.warn('Failed to migrate local data to Firebase:', saveError);
+        const docSnap = await Promise.race([getDoc(userRef), timeout]);
+
+        if (docSnap && typeof docSnap.exists === 'function' && docSnap.exists()) {
+          const firebaseData = docSnap.data() as UserData;
+
+          // Verify the data belongs to the current user
+          if (firebaseData.userId && firebaseData.userId !== userId) {
+            console.error('Data integrity violation - user ID mismatch');
+            throw new Error('Unauthorized data access attempt');
           }
+
+          console.log(`User data loaded from Firebase for user: ${userId.substring(0, 8)}...`);
+          return firebaseData;
+        } else {
+          console.log('No user data found in Firebase, using local data if available');
+          return localData;
         }
+      } catch (error) {
+        console.warn('Firebase load failed, using localStorage:', error);
         return localData;
       }
-    } catch (error) {
-      console.warn('Firebase load failed, using localStorage:', error);
+    } else {
+      console.log('Firebase not available, using localStorage only');
       return localData;
     }
-  } else {
-    console.log('Firebase not available or user not authenticated, using localStorage only');
-    return localData;
+  } catch (error) {
+    console.error('Failed to load user data:', error);
+    // Return null instead of any cached data to prevent unauthorized access
+    return null;
   }
 };
 
-// Update specific habit progress
+// Update specific habit progress (authenticated users only)
 export const updateHabitProgress = async (habitId: string, progress: number): Promise<void> => {
   try {
-    const userId = getUserId();
-    const userRef = doc(db, 'users', userId);
-    
-    // This would require reading the current data, updating the specific habit, and saving back
-    // For now, we'll handle this in the component and call saveUserData
-    console.log('Habit progress update requested for:', habitId, progress);
+    // Validate user is authenticated
+    const userId = validateUserAuthentication();
+
+    console.log(`Habit progress update for user ${userId.substring(0, 8)}...: ${habitId} = ${progress}`);
+
+    // This function is maintained for future use - currently handled in component
+    // All updates go through saveUserData which has proper user isolation
   } catch (error) {
     console.error('Error updating habit progress:', error);
+    throw error;
   }
 };
 
