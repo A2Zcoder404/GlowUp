@@ -227,51 +227,73 @@ export default function Home() {
 
         {/* Stats Card */}
         <div className="glow-card p-6 mb-6">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-4 text-center mb-4">
             <div>
-              <div className="text-2xl font-bold text-white">{xp}</div>
-              <div className="text-white/70">XP Points</div>
+              <div className="text-2xl font-bold text-white">{userData.totalXP}</div>
+              <div className="text-white/70">Total XP</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">Level {level}</div>
+              <div className="text-2xl font-bold text-white">Level {userData.level}</div>
               <div className="text-white/70">Current Level</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-white">{habits.reduce((sum, h) => sum + h.streak, 0)}</div>
+              <div className="text-2xl font-bold text-white">{userData.habits.reduce((sum, h) => sum + h.streakCount, 0)}</div>
               <div className="text-white/70">Total Streaks</div>
+            </div>
+          </div>
+
+          {/* XP Progress Bar */}
+          <div className="mt-4">
+            <div className="flex justify-between text-sm text-white/70 mb-1">
+              <span>Progress to Level {userData.level + 1}</span>
+              <span>{getXPProgress(userData.totalXP, userData.level)}/{getXPForNextLevel(userData.level)} XP</span>
+            </div>
+            <div className="w-full bg-white/20 rounded-full h-3">
+              <div
+                className="bg-gradient-to-r from-pink-400 to-purple-500 h-3 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${getProgressToNextLevel()}%` }}
+              ></div>
             </div>
           </div>
         </div>
 
         {/* Daily Quote */}
         <div className="glow-card p-6 mb-6 text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">Daily Motivation</h3>
-          <p className="text-xl text-white/90">{todayQuote}</p>
+          <h3 className="text-lg font-semibold text-white mb-2">🌅 Daily Motivation</h3>
+          <p className="text-xl text-white/90 italic">{todayQuote}</p>
         </div>
 
         {/* Habits */}
         <div className="glow-card p-6 mb-6">
-          <h3 className="text-xl font-bold text-white mb-4">Today's Habits</h3>
+          <h3 className="text-xl font-bold text-white mb-4">🎯 Today's Habits</h3>
           <div className="space-y-3">
-            {habits.map(habit => (
+            {userData.habits.map(habit => (
               <div
                 key={habit.id}
-                className="flex items-center justify-between p-4 bg-white/10 rounded-lg cursor-pointer hover:bg-white/20 transition-all"
+                className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all duration-300 ${
+                  habit.completedToday
+                    ? 'bg-gradient-to-r from-green-400/20 to-blue-400/20 hover:from-green-400/30 hover:to-blue-400/30'
+                    : 'bg-white/10 hover:bg-white/20'
+                }`}
                 onClick={() => toggleHabit(habit.id)}
               >
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl">{habit.icon}</span>
                   <div>
                     <div className="text-white font-medium">{habit.name}</div>
-                    <div className="text-white/70 text-sm">🔥 {habit.streak} day streak</div>
+                    <div className="text-white/70 text-sm flex items-center space-x-2">
+                      <span>🔥 {habit.streakCount} day streak</span>
+                      <span>•</span>
+                      <span>⭐ {habit.xpEarned} XP earned</span>
+                    </div>
                   </div>
                 </div>
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  habit.completed 
-                    ? 'bg-green-500 border-green-500' 
-                    : 'border-white/50'
+                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                  habit.completedToday
+                    ? 'bg-green-500 border-green-500 scale-110'
+                    : 'border-white/50 hover:border-white/80'
                 }`}>
-                  {habit.completed && <span className="text-white text-sm">✓</span>}
+                  {habit.completedToday && <span className="text-white text-lg">✓</span>}
                 </div>
               </div>
             ))}
