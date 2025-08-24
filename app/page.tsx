@@ -295,10 +295,13 @@ export default function Home() {
 
   // Save to Firebase whenever userData changes (non-blocking)
   useEffect(() => {
-    if (!isLoading && user) {
-      saveUserData(userData).catch(error =>
+    if (!isLoading && user && userData.totalXP !== undefined) {
+      console.log('Auto-saving user data...', { totalXP: userData.totalXP, level: userData.level })
+      saveUserData(userData).catch(error => {
         console.warn('Background save failed:', error)
-      )
+        setToastMessage('⚠️ Data save issue - changes stored locally')
+        setTimeout(() => setToastMessage(''), 2000)
+      })
     }
   }, [userData, isLoading, user])
 
