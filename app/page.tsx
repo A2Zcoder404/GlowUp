@@ -233,15 +233,19 @@ export default function Home() {
     if (savedData) {
       const parsed = JSON.parse(savedData) as UserData
 
-      // Check if it's a new day - reset completedToday but maintain streaks
+      // Check if it's a new day - reset daily progress but maintain streaks and targets
       const today = getTodayKey()
       if (parsed.lastVisitDate !== today) {
-        const resetHabits = parsed.habits.map(habit => ({
-          ...habit,
-          completedToday: false,
-          // If user didn't complete habit yesterday, reset streak
-          streakCount: habit.lastCompletedDate === parsed.lastVisitDate ? habit.streakCount : 0
-        }))
+        const resetHabits = parsed.habits.map(habit => {
+          const targetMet = habit.progress >= habit.target
+          return {
+            ...habit,
+            completedToday: false,
+            progress: 0, // Reset daily progress
+            // If user didn't meet target yesterday, reset streak
+            streakCount: targetMet && habit.lastCompletedDate === parsed.lastVisitDate ? habit.streakCount : 0
+          }
+        })
 
         setUserData({
           ...parsed,
@@ -263,29 +267,25 @@ export default function Home() {
     localStorage.setItem('glowup-data', JSON.stringify(userData))
   }, [userData])
 
-  const toggleHabit = (id: string) => {
+  const updateHabitProgress = (id: string, newProgress: number) => {
     setUserData(prev => {
       const updatedHabits = prev.habits.map(habit => {
         if (habit.id === id) {
-          const newCompleted = !habit.completedToday
-          const xpGain = 10
+          const targetMet = newProgress >= habit.target
+          const wasTargetMet = habit.progress >= habit.target
           const today = getTodayKey()
 
-          if (newCompleted) {
-            return {
-              ...habit,
-              completedToday: true,
-              streakCount: habit.streakCount + 1,
-              xpEarned: habit.xpEarned + xpGain,
-              lastCompletedDate: today
-            }
-          } else {
-            return {
-              ...habit,
-              completedToday: false,
-              streakCount: Math.max(0, habit.streakCount - 1),
-              xpEarned: Math.max(0, habit.xpEarned - xpGain)
-            }
+          // Calculate new XP based on progress
+          const newHabit = { ...habit, progress: newProgress }
+          const newXP = calculateXPFromProgress(newHabit)
+
+          return {
+            ...habit,
+            progress: newProgress,
+            completedToday: targetMet,
+            streakCount: targetMet && !wasTargetMet ? habit.streakCount + 1 : habit.streakCount,
+            xpEarned: newXP,
+            lastCompletedDate: targetMet ? today : habit.lastCompletedDate
           }
         }
         return habit
@@ -316,8 +316,31 @@ export default function Home() {
     })
   }
 
+  const updateHabitTarget = (id: string, newTarget: number) => {
+    setUserData(prev => ({
+      ...prev,
+      habits: prev.habits.map(habit =>
+        habit.id === id
+          ? { ...habit, target: newTarget, xpEarned: calculateXPFromProgress({ ...habit, target: newTarget }) }
+          : habit
+      )
+    }))
+  }
+
   const dismissNewBadges = () => {
     setNewBadges([])
+  }
+
+  const getProgressPercentage = (habit: Habit) => {
+    return Math.min((habit.progress / habit.target) * 100, 100)
+  }
+
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 100) return 'from-green-400 to-green-600'
+    if (percentage >= 75) return 'from-yellow-400 to-orange-500'
+    if (percentage >= 50) return 'from-blue-400 to-cyan-500'
+    if (percentage >= 25) return 'from-purple-400 to-pink-500'
+    return 'from-gray-400 to-gray-600'
   }
 
   const getUnlockedBadges = () => userData.badges.filter(badge => badge.unlocked)
