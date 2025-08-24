@@ -155,12 +155,29 @@ h1, h2, h3, h4, h5, h6 {
     0 0 15px #ffff00;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
+@keyframes neon-pulse {
+  0% {
+    box-shadow:
+      0 0 20px rgba(255, 0, 255, 0.5),
+      0 0 40px rgba(0, 255, 255, 0.3);
   }
-  50% {
-    transform: scale(1.05);
+  100% {
+    box-shadow:
+      0 0 30px rgba(255, 0, 255, 0.8),
+      0 0 60px rgba(0, 255, 255, 0.6);
+  }
+}
+
+@keyframes progress-glow {
+  0% {
+    box-shadow:
+      0 0 15px rgba(0, 255, 255, 0.6),
+      0 0 30px rgba(255, 0, 255, 0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 25px rgba(0, 255, 255, 0.9),
+      0 0 50px rgba(255, 0, 255, 0.7);
   }
 }
 
@@ -173,6 +190,68 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+@keyframes neon-flicker {
+  0%, 100% {
+    text-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px currentColor;
+  }
+  50% {
+    text-shadow:
+      0 0 2px currentColor,
+      0 0 5px currentColor,
+      0 0 8px currentColor,
+      0 0 12px currentColor;
+  }
+}
+
+@keyframes glow-rotate {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
 .floating {
   animation: float 3s ease-in-out infinite;
+}
+
+.neon-flicker {
+  animation: neon-flicker 2s ease-in-out infinite alternate;
+}
+
+.glow-rotate {
+  animation: glow-rotate 4s linear infinite;
+}
+
+.completion-animation {
+  animation: completion-flash 0.5s ease-in-out;
+}
+
+@keyframes completion-flash {
+  0% { background-color: rgba(0, 255, 0, 0.1); }
+  50% { background-color: rgba(0, 255, 0, 0.4); }
+  100% { background-color: rgba(0, 255, 0, 0.2); }
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 20, 40, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00ffff, #ff00ff);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff00ff, #00ffff);
 }
