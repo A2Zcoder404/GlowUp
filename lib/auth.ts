@@ -51,14 +51,32 @@ export const signIn = async (email: string, password: string): Promise<AuthUser>
 export const signUp = async (email: string, password: string): Promise<AuthUser> => {
   try {
     validateAuth();
+
+    console.log('🚀 Attempting sign up for:', email);
+    console.log('🔧 Auth config:', {
+      apiKey: auth.app.options.apiKey?.substring(0, 10) + '...',
+      authDomain: auth.app.options.authDomain,
+      projectId: auth.app.options.projectId
+    });
+
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+    console.log('✅ Sign up successful');
     return {
       uid: userCredential.user.uid,
       email: userCredential.user.email,
       displayName: userCredential.user.displayName
     };
   } catch (error: any) {
-    console.error('Sign up error:', error);
+    console.error('❌ Sign up error details:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack,
+      authDomain: auth?.app?.options?.authDomain,
+      projectId: auth?.app?.options?.projectId,
+      apiKey: auth?.app?.options?.apiKey?.substring(0, 10) + '...'
+    });
+
     if (error.code === 'auth/email-already-in-use') {
       throw new Error('An account with this email already exists');
     } else if (error.code === 'auth/weak-password') {
@@ -66,11 +84,23 @@ export const signUp = async (email: string, password: string): Promise<AuthUser>
     } else if (error.code === 'auth/invalid-email') {
       throw new Error('Invalid email address');
     } else if (error.code === 'auth/network-request-failed') {
-      throw new Error('Network error. Please check your internet connection');
+      console.error('🌐 Network request failed - possible causes:');
+      console.error('1. Internet connectivity issues');
+      console.error('2. Firebase project configuration problems');
+      console.error('3. API key restrictions or invalid key');
+      console.error('4. Domain not authorized in Firebase Console');
+      console.error('5. Firebase project does not exist or is disabled');
+
+      throw new Error('Network error: Unable to connect to Firebase. This might be due to project configuration issues or network connectivity. Check the browser console for details.');
     } else if (error.code === 'auth/configuration-not-found') {
-      throw new Error('Firebase configuration error. Please contact support');
+      throw new Error('Firebase configuration error. The project may not be properly set up.');
+    } else if (error.code === 'auth/api-key-not-valid') {
+      throw new Error('Invalid Firebase API key. Please check your project configuration.');
+    } else if (error.code === 'auth/project-not-found') {
+      throw new Error('Firebase project not found. Please verify your project ID.');
     }
-    throw new Error(error.message || 'Failed to create account');
+
+    throw new Error(`Authentication failed: ${error.message || 'Unknown error'}`);
   }
 };
 
