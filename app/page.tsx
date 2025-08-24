@@ -153,9 +153,65 @@ const getInitialHabits = (): Habit[] => [
 ]
 
 const getTodayKey = () => new Date().toDateString()
-const getLevel = (xp: number) => Math.floor(xp / 100) + 1
-const getXPForNextLevel = (level: number) => level * 100
-const getXPProgress = (xp: number, level: number) => xp - ((level - 1) * 100)
+const getLevel = (xp: number) => {
+  // Progressive XP requirements: 100, 200, 400, 700, 1100, 1600...
+  let level = 1
+  let totalXP = 0
+  let xpForLevel = 100
+
+  while (totalXP + xpForLevel <= xp) {
+    totalXP += xpForLevel
+    level++
+    xpForLevel = level * 100
+  }
+
+  return level
+}
+
+const getXPForNextLevel = (level: number) => (level + 1) * 100
+
+const getXPProgress = (xp: number, level: number) => {
+  let totalXPForPreviousLevels = 0
+  for (let i = 1; i < level; i++) {
+    totalXPForPreviousLevels += i * 100
+  }
+  return xp - totalXPForPreviousLevels
+}
+
+const calculateXPFromProgress = (habit: Habit): number => {
+  const progressRatio = habit.progress / habit.target
+
+  if (habit.type === 'water') {
+    if (progressRatio >= 1) return 25 // Full target
+    if (progressRatio >= 0.75) return 20 // 75% target
+    if (progressRatio >= 0.5) return 15 // 50% target
+    if (progressRatio >= 0.25) return 10 // 25% target
+    return Math.floor(progressRatio * 25) // Proportional
+  } else {
+    // For exercise, meditation, reading
+    if (progressRatio >= 2) return 30 // 2x target
+    if (progressRatio >= 1.5) return 25 // 1.5x target
+    if (progressRatio >= 1) return 20 // Full target
+    if (progressRatio >= 0.75) return 15 // 75% target
+    if (progressRatio >= 0.5) return 10 // 50% target
+    return Math.floor(progressRatio * 20) // Proportional
+  }
+}
+
+const getTargetOptions = (type: string) => {
+  switch (type) {
+    case 'water':
+      return [{ value: 2, label: '2L' }, { value: 3, label: '3L' }, { value: 4, label: '4L' }, { value: 6, label: '6L' }]
+    case 'exercise':
+      return [{ value: 30, label: '30min' }, { value: 60, label: '1hr' }, { value: 90, label: '1.5hr' }, { value: 120, label: '2hr' }]
+    case 'meditation':
+      return [{ value: 15, label: '15min' }, { value: 30, label: '30min' }, { value: 45, label: '45min' }, { value: 60, label: '1hr' }]
+    case 'reading':
+      return [{ value: 30, label: '30min' }, { value: 60, label: '1hr' }, { value: 90, label: '1.5hr' }, { value: 120, label: '2hr' }]
+    default:
+      return []
+  }
+}
 
 export default function Home() {
   const [userData, setUserData] = useState<UserData>({
@@ -168,6 +224,8 @@ export default function Home() {
   const [todayQuote, setTodayQuote] = useState('')
   const [newBadges, setNewBadges] = useState<Badge[]>([])
   const [showConfetti, setShowConfetti] = useState(false)
+  const [editingHabit, setEditingHabit] = useState<string | null>(null)
+  const [showProgressModal, setShowProgressModal] = useState<string | null>(null)
 
   // Load data from localStorage on mount
   useEffect(() => {
