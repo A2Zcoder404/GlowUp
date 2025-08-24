@@ -10,6 +10,11 @@ import {
   checkAndResetDailyProgress,
   getInitialHabits,
   getInitialBadges,
+  clearSessionData,
+  getCurrentUserInfo,
+  verifyDataOwnership,
+  hasUserData,
+  getUserDataStats,
   type UserData,
   type Habit,
   type Badge
@@ -36,7 +41,7 @@ const motivationalQuotes = [
   "Every habit completed is a victory! 🏆",
   "Believe in the power of your daily choices! ⭐",
   "You're stronger than you think! 💪",
-  "Mindful moments create magical transformations! 🧘‍♀️",
+  "Mindful moments create magical transformations! 🧘‍♀���",
   "Your health is your greatest wealth! 💎",
   "Celebrate every small win today! 🎉",
   "Consistency beats perfection every time! 🔥",
@@ -69,23 +74,52 @@ const getXPProgress = (xp: number, level: number) => {
   return xp - totalXPForPreviousLevels
 }
 
+// Get base XP for a specific target value
+const getBaseXPForTarget = (type: string, targetValue: number): number => {
+  const options = getTargetOptions(type)
+  const option = options.find(opt => opt.value === targetValue)
+  if (option) {
+    return option.baseXP
+  }
+
+  // For custom targets, calculate based on closest preset
+  const sortedOptions = options.sort((a, b) => Math.abs(a.value - targetValue) - Math.abs(b.value - targetValue))
+  if (sortedOptions.length > 0) {
+    // Scale XP based on target difficulty
+    const closest = sortedOptions[0]
+    const ratio = targetValue / closest.value
+    return Math.round(closest.baseXP * ratio)
+  }
+
+  return 15 // Default fallback
+}
+
 const calculateXPFromProgress = (habit: Habit): number => {
+  const baseXP = getBaseXPForTarget(habit.type, habit.target)
   const progressRatio = habit.progress / habit.target
 
-  if (habit.type === 'water') {
-    if (progressRatio >= 1) return 25 // Full target
-    if (progressRatio >= 0.75) return 20 // 75% target
-    if (progressRatio >= 0.5) return 15 // 50% target
-    if (progressRatio >= 0.25) return 10 // 25% target
-    return Math.floor(progressRatio * 25) // Proportional
-  } else {
-    // For exercise, meditation, reading
-    if (progressRatio >= 2) return 30 // 2x target
-    if (progressRatio >= 1.5) return 25 // 1.5x target
-    if (progressRatio >= 1) return 20 // Full target
-    if (progressRatio >= 0.75) return 15 // 75% target
-    if (progressRatio >= 0.5) return 10 // 50% target
-    return Math.floor(progressRatio * 20) // Proportional
+  // Calculate XP based on progress ratio
+  if (progressRatio >= 2) return Math.round(baseXP * 1.5) // 150% XP for 200% completion
+  if (progressRatio >= 1.5) return Math.round(baseXP * 1.25) // 125% XP for 150% completion
+  if (progressRatio >= 1) return baseXP // Full XP for 100% completion
+  if (progressRatio >= 0.75) return Math.round(baseXP * 0.75) // 75% XP
+  if (progressRatio >= 0.5) return Math.round(baseXP * 0.5) // 50% XP
+  if (progressRatio >= 0.25) return Math.round(baseXP * 0.25) // 25% XP
+  return Math.floor(progressRatio * baseXP) // Proportional XP
+}
+
+const getTargetOptions = (type: string) => {
+  switch (type) {
+    case 'water':
+      return [{ value: 2, label: '2L', baseXP: 10 }, { value: 3, label: '3L', baseXP: 15 }, { value: 4, label: '4L', baseXP: 20 }, { value: 6, label: '6L', baseXP: 25 }]
+    case 'exercise':
+      return [{ value: 30, label: '30min', baseXP: 10 }, { value: 60, label: '1hr', baseXP: 15 }, { value: 90, label: '1.5hr', baseXP: 20 }, { value: 120, label: '2hr', baseXP: 25 }]
+    case 'meditation':
+      return [{ value: 15, label: '15min', baseXP: 10 }, { value: 30, label: '30min', baseXP: 15 }, { value: 45, label: '45min', baseXP: 20 }, { value: 60, label: '1hr', baseXP: 25 }]
+    case 'reading':
+      return [{ value: 30, label: '30min', baseXP: 10 }, { value: 60, label: '1hr', baseXP: 15 }, { value: 90, label: '1.5hr', baseXP: 20 }, { value: 120, label: '2hr', baseXP: 25 }]
+    default:
+      return []
   }
 }
 
@@ -114,14 +148,19 @@ export default function Home() {
       console.log('Auth state changed:', authUser ? `User: ${authUser.email}` : 'No user')
       setUser(authUser)
       setAuthLoading(false)
-      
+
       if (authUser) {
         console.log('User authenticated:', authUser.email)
+        console.log('User ID:', authUser.uid.substring(0, 8) + '...')
         // Load user data when authenticated
         loadUserDataForUser()
       } else {
-        console.log('User signed out')
-        // Clear user data when signed out
+        console.log('User signed out - preserving data for re-login')
+
+        // Clear only session data, preserve user data for re-login
+        clearSessionData()
+
+        // Reset state to initial values (but don't clear localStorage)
         setUserData({
           habits: getInitialHabits(),
           totalXP: 0,
@@ -138,16 +177,58 @@ export default function Home() {
     }
   }, [])
 
-  // Load user data function
+  // Load user data function with enhanced security
   const loadUserDataForUser = async () => {
+    // Only load data if user is authenticated
+    if (!user) {
+      console.log('No authenticated user - skipping data load')
+      return
+    }
+
+    // Log user data stats for debugging
+    const dataStats = getUserDataStats()
+    if (dataStats) {
+      console.log('User data stats:', dataStats)
+    } else {
+      console.log('No existing user data found')
+    }
+
     setIsLoading(true)
-    console.log('Loading user data...')
+
+    // Verify user authentication
+    const currentUserInfo = getCurrentUserInfo()
+    if (!currentUserInfo.isAuthenticated) {
+      console.error('User authentication verification failed')
+      setIsLoading(false)
+      return
+    }
 
     try {
+      // Set loading timeout to prevent infinite loading
+      const loadingTimeout = setTimeout(() => {
+        console.warn('Loading timeout reached, using default data')
+        setUserData({
+          habits: getInitialHabits(),
+          totalXP: 0,
+          level: 1,
+          badges: getInitialBadges(),
+          lastVisitDate: getTodayKey()
+        })
+        setToastMessage('⚠️ Connection timeout - using default data')
+        setTimeout(() => setToastMessage(''), 3000)
+        setIsLoading(false)
+      }, 10000) // 10 second timeout
+
       const savedData = await loadUserData()
+      clearTimeout(loadingTimeout)
 
       if (savedData) {
-        console.log('User data loaded from database')
+        // Verify data ownership before using it
+        if (!verifyDataOwnership(savedData, currentUserInfo.uid!)) {
+          console.error('Data ownership verification failed - using default data')
+          throw new Error('Unauthorized data access')
+        }
+
         // Check for new day and reset progress
         const updatedData = checkAndResetDailyProgress(savedData)
 
@@ -169,17 +250,18 @@ export default function Home() {
           )
         }
 
-        setToastMessage('✅ Welcome back!')
+        // Show connection status
+        setToastMessage('✅ Secure data loaded!')
         setTimeout(() => setToastMessage(''), 2000)
       } else {
-        console.log('No existing data, initializing with defaults')
-        // Initialize with default data
+        // Initialize with default data for new user
         const initialData: UserData = {
           habits: getInitialHabits(),
           totalXP: 0,
           level: 1,
           badges: getInitialBadges(),
-          lastVisitDate: getTodayKey()
+          lastVisitDate: getTodayKey(),
+          userId: currentUserInfo.uid // Add user ID for security
         }
         setUserData(initialData)
 
@@ -188,12 +270,22 @@ export default function Home() {
           console.warn('Initial save failed:', error)
         )
 
-        setToastMessage('🎮 Welcome to GlowUp!')
+        // Welcome new user
+        setToastMessage(`🎮 Welcome to GlowUp, ${currentUserInfo.email?.split('@')[0] || 'User'}!`)
         setTimeout(() => setToastMessage(''), 3000)
       }
     } catch (error) {
-      console.error('Error loading data:', error)
-      setToastMessage('⚠️ Using offline mode')
+      console.error('Error loading user data:', error)
+      // Use default data and show security warning
+      setUserData({
+        habits: getInitialHabits(),
+        totalXP: 0,
+        level: 1,
+        badges: getInitialBadges(),
+        lastVisitDate: getTodayKey(),
+        userId: currentUserInfo.uid
+      })
+      setToastMessage('⚠️ Security error - using fresh data')
       setTimeout(() => setToastMessage(''), 3000)
     }
 
@@ -208,22 +300,59 @@ export default function Home() {
 
   // Save to Firebase whenever userData changes (non-blocking)
   useEffect(() => {
-    if (!isLoading && user) {
-      saveUserData(userData).catch(error =>
+    if (!isLoading && user && userData.totalXP !== undefined) {
+      console.log('Auto-saving user data...', { totalXP: userData.totalXP, level: userData.level })
+      saveUserData(userData).catch(error => {
         console.warn('Background save failed:', error)
-      )
+        setToastMessage('⚠️ Data save issue - changes stored locally')
+        setTimeout(() => setToastMessage(''), 2000)
+      })
     }
   }, [userData, isLoading, user])
 
   const handleSignOut = async () => {
     try {
+      // Try to save current data before signing out (don't block logout if this fails)
+      console.log('Saving data before sign out...')
+      try {
+        await saveUserData(userData)
+        console.log('Data saved successfully before logout')
+      } catch (saveError) {
+        console.warn('Failed to save data before logout, but continuing with logout:', saveError)
+        // Don't block logout if save fails
+      }
+
+      // Sign out from Firebase Auth (this should always work)
       await logOut()
+      console.log('Successfully signed out from Firebase')
+
+      // Clear only session data (preserve user data for re-login)
+      clearSessionData()
+
       setToastMessage('👋 Signed out successfully!')
       setTimeout(() => setToastMessage(''), 2000)
     } catch (error) {
-      console.error('Sign out error:', error)
-      setToastMessage('❌ Sign out failed')
-      setTimeout(() => setToastMessage(''), 3000)
+      console.error('Critical sign out error:', error)
+
+      // Force logout even if Firebase signOut fails
+      try {
+        clearSessionData()
+        // Reset user state manually
+        setUser(null)
+        setUserData({
+          habits: getInitialHabits(),
+          totalXP: 0,
+          level: 1,
+          badges: getInitialBadges(),
+          lastVisitDate: getTodayKey()
+        })
+        setToastMessage('👋 Forced logout successful!')
+        setTimeout(() => setToastMessage(''), 2000)
+      } catch (forceError) {
+        console.error('Force logout failed:', forceError)
+        setToastMessage('❌ Logout failed - please refresh the page')
+        setTimeout(() => setToastMessage(''), 3000)
+      }
     }
   }
 
@@ -295,14 +424,26 @@ export default function Home() {
       setTimeout(() => setToastMessage(''), 2000)
     }
 
-    setUserData(prev => ({
-      ...prev,
-      habits: prev.habits.map(habit =>
-        habit.id === id
-          ? { ...habit, target: newTarget, xpEarned: calculateXPFromProgress({ ...habit, target: newTarget }) }
-          : habit
-      )
-    }))
+    setUserData(prev => {
+      const updatedHabits = prev.habits.map(habit => {
+        if (habit.id === id) {
+          const updatedHabit = { ...habit, target: newTarget }
+          const newXP = calculateXPFromProgress(updatedHabit)
+          return { ...updatedHabit, xpEarned: newXP }
+        }
+        return habit
+      })
+
+      const newTotalXP = updatedHabits.reduce((sum, h) => sum + h.xpEarned, 0)
+      const newLevel = getLevel(newTotalXP)
+
+      return {
+        ...prev,
+        habits: updatedHabits,
+        totalXP: newTotalXP,
+        level: newLevel
+      }
+    })
   }
 
   const dismissNewBadges = () => {
@@ -363,7 +504,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 floating">
-          <h1 className="text-6xl font-black neon-text neon-flicker mb-4">⚡ GLOWUP ⚡</h1>
+          <h1 className="text-6xl font-black neon-text mb-4">⚡ GLOWUP ⚡</h1>
           <p className="text-xl text-cyan-300 font-medium tracking-wide">GAMIFY YOUR WELLNESS JOURNEY</p>
           <div className="flex justify-center items-center space-x-4 mt-3">
             <div className="flex space-x-2 text-2xl">
@@ -374,7 +515,10 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4 text-sm">
               <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-              <span className="text-cyan-400 font-bold">CONNECTED</span>
+              <span className="text-cyan-400 font-bold">DATA PERSISTED</span>
+              <div className="text-xs text-gray-400">
+                XP: {userData.totalXP} • LVL: {userData.level}
+              </div>
               <button
                 onClick={handleSignOut}
                 className="text-xs text-gray-400 hover:text-red-400 transition-colors font-medium"
@@ -430,7 +574,7 @@ export default function Home() {
         {/* Habits */}
         <div className="glow-card p-6 mb-6">
           <h3 className="text-xl font-bold neon-text mb-6 tracking-wider text-center">⚡ TODAY'S MISSIONS ⚡</h3>
-          <div className="space-y-6">
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
             {userData.habits.map(habit => {
               const progressPercentage = getProgressPercentage(habit)
               const progressColor = getProgressColor(progressPercentage)
@@ -461,15 +605,19 @@ export default function Home() {
                         <div className="text-sm flex items-center space-x-3 mt-1">
                           <span className="flex items-center space-x-1">
                             <span className="text-orange-400">🔥</span>
-                            <span className="text-orange-300 font-semibold">{habit.streakCount}</span>
-                            <span className="text-orange-200 text-xs">STREAK</span>
-                          </span>
-                          <span className="text-yellow-400">●</span>
-                          <span className="flex items-center space-x-1">
-                            <span className="text-yellow-400">⭐</span>
-                            <span className="text-yellow-300 font-semibold">{habit.xpEarned}</span>
-                            <span className="text-yellow-200 text-xs">XP</span>
-                          </span>
+                        <span className="text-orange-300 font-semibold">{habit.streakCount}</span>
+                        <span className="text-orange-200 text-xs">STREAK</span>
+                      </span>
+                      <span className="text-yellow-400">●</span>
+                      <span className={`flex items-center space-x-1 px-2 py-1 rounded-lg ${
+                        habit.xpEarned > 0 ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-gray-700/30'
+                      }`}>
+                        <span className="text-yellow-400">⭐</span>
+                        <span className={`font-bold ${
+                          habit.xpEarned > 0 ? 'text-yellow-300 neon-text' : 'text-gray-400'
+                        }`}>{habit.xpEarned || 0}</span>
+                        <span className="text-yellow-200 text-xs">XP</span>
+                      </span>
                         </div>
                       </div>
                     </div>
@@ -499,8 +647,8 @@ export default function Home() {
                             e.stopPropagation()
                             setShowSettingsModal(habit.id)
                           }}
-                          className="text-pink-400 font-bold hover:text-pink-300 transition-colors hover:scale-105 transform"
-                          title="Open Mission Settings"
+                          className="text-pink-400 font-bold hover:text-pink-300 transition-colors hover:scale-105 transform px-2 py-1 rounded-lg bg-pink-500/20 border border-pink-500/30 hover:bg-pink-500/30"
+                          title="Click to customize target (liters, hours, minutes)"
                         >
                           {habit.target}{habit.targetUnit} ⚙️
                         </button>

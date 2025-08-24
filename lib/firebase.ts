@@ -1,5 +1,6 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -14,33 +15,39 @@ const firebaseConfig = {
   measurementId: "G-58MV5GK932"
 };
 
-// Initialize Firebase only once
+// Initialize Firebase app
 let app;
+let analytics;
+try {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+} catch (error) {
+  console.error('Firebase app initialization failed:', error);
+  app = initializeApp(firebaseConfig);
+}
+
+// Initialize Firebase services
 let db;
 let auth;
 
 if (typeof window !== 'undefined') {
   // Only initialize in browser environment
   try {
-    // Check if Firebase is already initialized
-    if (getApps().length === 0) {
-      app = initializeApp(firebaseConfig);
-      console.log('Firebase app initialized');
-    } else {
-      app = getApps()[0];
-      console.log('Using existing Firebase app');
-    }
+    // Initialize Auth
+    auth = getAuth(app);
 
     // Initialize Firestore
     db = getFirestore(app);
-    console.log('Firestore initialized');
 
-    // Initialize Auth
-    auth = getAuth(app);
-    console.log('Auth initialized');
+    // Initialize Analytics (only in browser)
+    try {
+      analytics = getAnalytics(app);
+    } catch (analyticsError) {
+      console.warn('Analytics initialization failed:', analyticsError);
+    }
 
+    console.log('Firebase services initialized successfully');
   } catch (error) {
-    console.error('Firebase initialization failed:', error);
+    console.error('Firebase services initialization failed:', error);
   }
 } else {
   console.log('Not in browser environment, skipping Firebase initialization');

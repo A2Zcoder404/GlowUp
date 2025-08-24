@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn, signUp } from '../lib/auth'
+import { testFirebaseConnection, verifyFirebaseProject } from '../lib/firebase-test'
 
 interface LoginPageProps {
   onLogin: () => void
@@ -14,6 +15,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    // Test Firebase connection on component mount
+    testFirebaseConnection();
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,8 +85,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm text-center">
-                ⚠️ {error}
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+                <div className="text-center font-bold mb-2">⚠️ Authentication Error</div>
+                <div className="text-center">{error}</div>
+                {error.includes('configuration') && (
+                  <div className="mt-2 text-xs text-center text-yellow-300">
+                    💡 This usually means Firebase is not properly configured. Check the console for details.
+                  </div>
+                )}
+                {error.includes('network') && (
+                  <div className="mt-2 text-xs text-center text-yellow-300">
+                    💡 Check your internet connection and try again.
+                  </div>
+                )}
               </div>
             )}
 
@@ -149,7 +166,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={async () => {
+                  await testFirebaseConnection();
+                  await verifyFirebaseProject();
+                }}
+                className="text-xs text-yellow-300 hover:text-yellow-100 font-medium transition-colors mb-2 block w-full"
+              >
+                🔧 Test Firebase Connection (Check Console)
+              </button>
+            </div>
+
+            <div className="mt-2 text-center">
               <button
                 onClick={toggleMode}
                 className="text-cyan-300 hover:text-cyan-100 font-medium transition-colors"
