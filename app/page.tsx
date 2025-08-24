@@ -615,8 +615,8 @@ export default function Home() {
               <div className="text-gray-300">Click target values to see XP previews and streak rules</div>
             </div>
             <div className="p-3 border border-pink-500/30 rounded-lg bg-pink-500/10">
-              <div className="neon-pink font-bold mb-1">🔥 FIREBASE SYNC</div>
-              <div className="text-gray-300">Your progress is automatically saved to cloud database</div>
+              <div className="neon-pink font-bold mb-1">🔄 AUTO SYNC</div>
+              <div className="text-gray-300">Data saves to cloud when possible, works offline too</div>
             </div>
             <div className="p-3 border border-green-500/30 rounded-lg bg-green-500/10">
               <div className="neon-green font-bold mb-1">📊 DAILY RESET</div>
