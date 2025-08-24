@@ -116,7 +116,8 @@ export const saveUserData = async (userData: UserData): Promise<void> => {
     }
   } catch (error) {
     console.error('Failed to save user data:', error);
-    // Don't throw error to prevent app crashes
+    // Don't throw error to prevent app crashes - data is still saved to localStorage
+    // The function should not fail the entire operation if localStorage succeeded
   }
 };
 
