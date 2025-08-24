@@ -43,18 +43,24 @@ export interface UserData {
   updatedAt?: Timestamp
 }
 
-// Get authenticated user ID
-const getUserId = (): string => {
+// Get authenticated user ID with security checks
+const getUserId = (): string | null => {
   const user = auth?.currentUser;
-  if (user) {
+  if (user && user.uid) {
+    // Only return UID for properly authenticated users
     return user.uid;
   }
-  
-  // Fallback to localStorage for offline mode
-  let userId = localStorage.getItem('glowup-user-id');
+
+  // Return null if no authenticated user - no fallback to prevent data mixing
+  console.warn('No authenticated user found - user data operations will be blocked');
+  return null;
+};
+
+// Validate user is authenticated before any data operations
+const validateUserAuthentication = (): string => {
+  const userId = getUserId();
   if (!userId) {
-    userId = 'offline_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('glowup-user-id', userId);
+    throw new Error('User must be authenticated to access data');
   }
   return userId;
 };
