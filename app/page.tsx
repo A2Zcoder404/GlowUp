@@ -271,7 +271,7 @@ export default function Home() {
         )
 
         // Welcome new user
-        setToastMessage(`���� Welcome to GlowUp, ${currentUserInfo.email?.split('@')[0] || 'User'}!`)
+        setToastMessage(`🎮 Welcome to GlowUp, ${currentUserInfo.email?.split('@')[0] || 'User'}!`)
         setTimeout(() => setToastMessage(''), 3000)
       }
     } catch (error) {
@@ -283,7 +283,7 @@ export default function Home() {
         level: 1,
         badges: getInitialBadges(),
         lastVisitDate: getTodayKey(),
-        userId: currentUserInfo.uid
+        userId: currentUserInfo.uid || undefined
       })
       setToastMessage('⚠️ Security error - using fresh data')
       setTimeout(() => setToastMessage(''), 3000)
