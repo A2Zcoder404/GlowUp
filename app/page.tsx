@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import TargetModal from './components/TargetModal'
+import ProgressModal from './components/ProgressModal'
 
 interface Habit {
   id: string
@@ -224,7 +226,7 @@ export default function Home() {
   const [todayQuote, setTodayQuote] = useState('')
   const [newBadges, setNewBadges] = useState<Badge[]>([])
   const [showConfetti, setShowConfetti] = useState(false)
-  const [editingHabit, setEditingHabit] = useState<string | null>(null)
+  const [showTargetModal, setShowTargetModal] = useState<string | null>(null)
   const [showProgressModal, setShowProgressModal] = useState<string | null>(null)
 
   // Load data from localStorage on mount
