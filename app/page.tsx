@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import TargetModal from './components/TargetModal'
-import ProgressModal from './components/ProgressModal'
 
 interface Habit {
   id: string
