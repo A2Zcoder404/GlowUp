@@ -33,7 +33,7 @@ const motivationalQuotes = [
   "Your wellness journey is unique and beautiful! 🌸",
   "Every habit completed is a victory! 🏆",
   "Believe in the power of your daily choices! ⭐",
-  "You're stronger than you think! 💪",
+  "You're stronger than you think! ��",
   "Mindful moments create magical transformations! 🧘‍♀️",
   "Your health is your greatest wealth! 💎",
   "Celebrate every small win today! 🎉",
@@ -144,6 +144,10 @@ export default function Home() {
           if (updatedData !== savedData) {
             await saveUserData(updatedData)
           }
+
+          // Show Firebase connection success
+          setToastMessage('🔥 Connected to Firebase successfully!')
+          setTimeout(() => setToastMessage(''), 2000)
         } else {
           // Initialize with default data
           const initialData: UserData = {
@@ -155,6 +159,10 @@ export default function Home() {
           }
           setUserData(initialData)
           await saveUserData(initialData)
+
+          // Welcome new user
+          setToastMessage('🎮 Welcome to GlowUp! Your data is now saved in Firebase!')
+          setTimeout(() => setToastMessage(''), 3000)
         }
       } catch (error) {
         console.error('Error loading data:', error)
