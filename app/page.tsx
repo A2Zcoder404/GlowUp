@@ -319,12 +319,15 @@ export default function Home() {
 
       // Check for new badges
       const updatedBadges = prev.badges.map(badge => {
-        const shouldUnlock = badge.condition(updatedHabits) && !badge.unlocked
-        if (shouldUnlock) {
-          setNewBadges(prevNew => [...prevNew, badge])
-          setShowConfetti(true)
-          setTimeout(() => setShowConfetti(false), 3000)
-          return { ...badge, unlocked: true, unlockedDate: getTodayKey() }
+        // Safety check: ensure condition is a function
+        if (typeof badge.condition === 'function') {
+          const shouldUnlock = badge.condition(updatedHabits) && !badge.unlocked
+          if (shouldUnlock) {
+            setNewBadges(prevNew => [...prevNew, badge])
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 3000)
+            return { ...badge, unlocked: true, unlockedDate: getTodayKey() }
+          }
         }
         return badge
       })
