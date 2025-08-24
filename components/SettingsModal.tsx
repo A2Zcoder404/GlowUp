@@ -94,10 +94,11 @@ const calculateXPFromProgress = (habit: Habit, newTarget: number): number => {
 }
 
 const getXPRangeForTarget = (type: string, target: number) => {
-  if (type === 'water') {
-    return { min: 0, max: 25, full: 25 }
-  } else {
-    return { min: 0, max: 30, full: 20 }
+  const baseXP = getBaseXPForTarget(type, target)
+  return {
+    min: 0,
+    max: Math.round(baseXP * 1.5), // Max XP at 200% completion
+    full: baseXP // Full XP at 100% completion
   }
 }
 
