@@ -1,22 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
   min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
 }
 
 .glow-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+}
+
+.habit-card {
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.1);
+}
+
+.habit-card:hover {
+  box-shadow: 0 8px 25px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .streak-badge {
-  background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
-  animation: pulse 2s infinite;
+  background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 100%);
+  box-shadow: 0 4px 15px 0 rgba(255, 154, 158, 0.4);
+  transition: all 0.3s ease;
+}
+
+.streak-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px 0 rgba(255, 154, 158, 0.6);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
+  box-shadow: 0 2px 10px 0 rgba(255, 154, 158, 0.4);
 }
 
 @keyframes pulse {
@@ -26,4 +57,17 @@ body {
   50% {
     transform: scale(1.05);
   }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.floating {
+  animation: float 3s ease-in-out infinite;
 }
