@@ -169,7 +169,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <div className="mt-4 text-center">
               <button
                 type="button"
-                onClick={() => testFirebaseConnection()}
+                onClick={async () => {
+                  await testFirebaseConnection();
+                  await verifyFirebaseProject();
+                }}
                 className="text-xs text-yellow-300 hover:text-yellow-100 font-medium transition-colors mb-2 block w-full"
               >
                 🔧 Test Firebase Connection (Check Console)
