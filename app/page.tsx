@@ -235,6 +235,23 @@ export default function Home() {
     if (savedData) {
       const parsed = JSON.parse(savedData) as UserData
 
+      // Restore badge condition functions (they don't serialize to JSON)
+      const initialBadges = getInitialBadges()
+      const restoredBadges = parsed.badges.map(savedBadge => {
+        const initialBadge = initialBadges.find(b => b.id === savedBadge.id)
+        return {
+          ...savedBadge,
+          condition: initialBadge?.condition || (() => false) // Restore the function
+        }
+      })
+
+      // Add any new badges that might not exist in saved data
+      initialBadges.forEach(initialBadge => {
+        if (!restoredBadges.find(b => b.id === initialBadge.id)) {
+          restoredBadges.push(initialBadge)
+        }
+      })
+
       // Check if it's a new day - reset daily progress but maintain streaks and targets
       const today = getTodayKey()
       if (parsed.lastVisitDate !== today) {
@@ -252,10 +269,14 @@ export default function Home() {
         setUserData({
           ...parsed,
           habits: resetHabits,
+          badges: restoredBadges,
           lastVisitDate: today
         })
       } else {
-        setUserData(parsed)
+        setUserData({
+          ...parsed,
+          badges: restoredBadges
+        })
       }
     }
 
