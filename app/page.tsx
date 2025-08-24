@@ -144,12 +144,25 @@ export default function Home() {
     const unsubscribe = onAuthStateChange((authUser) => {
       setUser(authUser)
       setAuthLoading(false)
-      
+
       if (authUser) {
         console.log('User authenticated:', authUser.email)
+        console.log('User ID:', authUser.uid.substring(0, 8) + '...')
       } else {
-        console.log('User signed out')
-        // Clear user data when signed out
+        console.log('User signed out - clearing user data')
+
+        // Get current user info before clearing
+        const currentUserInfo = getCurrentUserInfo()
+
+        // Clear user-specific data
+        if (currentUserInfo.uid) {
+          clearUserData(currentUserInfo.uid)
+        }
+
+        // Clear any legacy data
+        clearUserData()
+
+        // Reset state to initial values
         setUserData({
           habits: getInitialHabits(),
           totalXP: 0,
@@ -163,13 +176,24 @@ export default function Home() {
     return () => unsubscribe()
   }, [])
 
-  // Load data from Firebase/localStorage on mount
+  // Load data from Firebase/localStorage on mount (authenticated users only)
   useEffect(() => {
     // Only load data if user is authenticated
-    if (!user) return
-    
+    if (!user) {
+      console.log('No authenticated user - skipping data load')
+      return
+    }
+
     const loadData = async () => {
       setIsLoading(true)
+
+      // Verify user authentication
+      const currentUserInfo = getCurrentUserInfo()
+      if (!currentUserInfo.isAuthenticated) {
+        console.error('User authentication verification failed')
+        setIsLoading(false)
+        return
+      }
 
       // Set loading timeout to prevent infinite loading
       const loadingTimeout = setTimeout(() => {
@@ -181,7 +205,7 @@ export default function Home() {
           badges: getInitialBadges(),
           lastVisitDate: getTodayKey()
         })
-        setToastMessage('⚠️ Using offline mode - data will sync when possible')
+        setToastMessage('⚠️ Connection timeout - using default data')
         setTimeout(() => setToastMessage(''), 3000)
         setIsLoading(false)
       }, 10000) // 10 second timeout
@@ -190,6 +214,12 @@ export default function Home() {
         const savedData = await loadUserData()
 
         if (savedData) {
+          // Verify data ownership before using it
+          if (!verifyDataOwnership(savedData, currentUserInfo.uid!)) {
+            console.error('Data ownership verification failed - using default data')
+            throw new Error('Unauthorized data access')
+          }
+
           // Check for new day and reset progress
           const updatedData = checkAndResetDailyProgress(savedData)
 
@@ -212,16 +242,17 @@ export default function Home() {
           }
 
           // Show connection status
-          setToastMessage('✅ Data loaded successfully!')
+          setToastMessage('✅ Secure data loaded!')
           setTimeout(() => setToastMessage(''), 2000)
         } else {
-          // Initialize with default data
+          // Initialize with default data for new user
           const initialData: UserData = {
             habits: getInitialHabits(),
             totalXP: 0,
             level: 1,
             badges: getInitialBadges(),
-            lastVisitDate: getTodayKey()
+            lastVisitDate: getTodayKey(),
+            userId: currentUserInfo.uid // Add user ID for security
           }
           setUserData(initialData)
 
@@ -231,20 +262,21 @@ export default function Home() {
           )
 
           // Welcome new user
-          setToastMessage('🎮 Welcome to GlowUp!')
+          setToastMessage(`🎮 Welcome to GlowUp, ${currentUserInfo.email?.split('@')[0] || 'User'}!`)
           setTimeout(() => setToastMessage(''), 3000)
         }
       } catch (error) {
-        console.error('Error loading data:', error)
-        // Fallback to default data
+        console.error('Error loading user data:', error)
+        // Use default data and show security warning
         setUserData({
           habits: getInitialHabits(),
           totalXP: 0,
           level: 1,
           badges: getInitialBadges(),
-          lastVisitDate: getTodayKey()
+          lastVisitDate: getTodayKey(),
+          userId: currentUserInfo.uid
         })
-        setToastMessage('⚠️ Started in offline mode')
+        setToastMessage('⚠️ Security error - using fresh data')
         setTimeout(() => setToastMessage(''), 3000)
       }
 
@@ -270,8 +302,18 @@ export default function Home() {
 
   const handleSignOut = async () => {
     try {
+      // Get user info before signing out
+      const currentUserInfo = getCurrentUserInfo()
+
+      // Sign out from Firebase Auth
       await logOut()
-      setToastMessage('👋 Signed out successfully!')
+
+      // Clear user-specific data
+      if (currentUserInfo.uid) {
+        clearUserData(currentUserInfo.uid)
+      }
+
+      setToastMessage('👋 Signed out securely!')
       setTimeout(() => setToastMessage(''), 2000)
     } catch (error) {
       console.error('Sign out error:', error)
