@@ -483,7 +483,10 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4 text-sm">
               <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-              <span className="text-cyan-400 font-bold">DATA SYNCED</span>
+              <span className="text-cyan-400 font-bold">DATA PERSISTED</span>
+              <div className="text-xs text-gray-400">
+                XP: {userData.totalXP} • LVL: {userData.level}
+              </div>
               <button
                 onClick={handleSignOut}
                 className="text-xs text-gray-400 hover:text-red-400 transition-colors font-medium"
