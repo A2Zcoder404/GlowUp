@@ -467,7 +467,7 @@ export default function Home() {
         {/* Habits */}
         <div className="glow-card p-6 mb-6">
           <h3 className="text-xl font-bold neon-text mb-6 tracking-wider text-center">⚡ TODAY'S MISSIONS ⚡</h3>
-          <div className="space-y-6">
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
             {userData.habits.map(habit => {
               const progressPercentage = getProgressPercentage(habit)
               const progressColor = getProgressColor(progressPercentage)
@@ -498,15 +498,15 @@ export default function Home() {
                         <div className="text-sm flex items-center space-x-3 mt-1">
                           <span className="flex items-center space-x-1">
                             <span className="text-orange-400">🔥</span>
-                            <span className="text-orange-300 font-semibold">{habit.streakCount}</span>
-                            <span className="text-orange-200 text-xs">STREAK</span>
-                          </span>
-                          <span className="text-yellow-400">●</span>
-                          <span className="flex items-center space-x-1">
-                            <span className="text-yellow-400">⭐</span>
-                            <span className="text-yellow-300 font-semibold">{habit.xpEarned}</span>
-                            <span className="text-yellow-200 text-xs">XP</span>
-                          </span>
+                        <span className="text-orange-300 font-semibold">{habit.streakCount}</span>
+                        <span className="text-orange-200 text-xs">STREAK</span>
+                      </span>
+                      <span className="text-yellow-400">●</span>
+                      <span className="flex items-center space-x-1">
+                        <span className="text-yellow-400">⭐</span>
+                        <span className="text-yellow-300 font-semibold">{habit.xpEarned || 0}</span>
+                        <span className="text-yellow-200 text-xs">XP EARNED</span>
+                      </span>
                         </div>
                       </div>
                     </div>
