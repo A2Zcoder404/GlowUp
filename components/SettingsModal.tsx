@@ -28,31 +28,31 @@ const getTargetOptions = (type: string) => {
   switch (type) {
     case 'water':
       return [
-        { value: 2, label: '2L', description: 'Light hydration' },
-        { value: 3, label: '3L', description: 'Recommended daily' },
-        { value: 4, label: '4L', description: 'Active lifestyle' },
-        { value: 6, label: '6L', description: 'Athlete level' }
+        { value: 2, label: '2L', description: 'Light hydration', baseXP: 10 },
+        { value: 3, label: '3L', description: 'Recommended daily', baseXP: 15 },
+        { value: 4, label: '4L', description: 'Active lifestyle', baseXP: 20 },
+        { value: 6, label: '6L', description: 'Athlete level', baseXP: 25 }
       ]
     case 'exercise':
       return [
-        { value: 30, label: '30min', description: 'Light workout' },
-        { value: 60, label: '1hr', description: 'Recommended daily' },
-        { value: 90, label: '1.5hr', description: 'Intensive training' },
-        { value: 120, label: '2hr', description: 'Athlete level' }
+        { value: 30, label: '30min', description: 'Light workout', baseXP: 10 },
+        { value: 60, label: '1hr', description: 'Recommended daily', baseXP: 15 },
+        { value: 90, label: '1.5hr', description: 'Intensive training', baseXP: 20 },
+        { value: 120, label: '2hr', description: 'Athlete level', baseXP: 25 }
       ]
     case 'meditation':
       return [
-        { value: 15, label: '15min', description: 'Quick mindfulness' },
-        { value: 30, label: '30min', description: 'Standard practice' },
-        { value: 45, label: '45min', description: 'Deep meditation' },
-        { value: 60, label: '1hr', description: 'Extended practice' }
+        { value: 15, label: '15min', description: 'Quick mindfulness', baseXP: 10 },
+        { value: 30, label: '30min', description: 'Standard practice', baseXP: 15 },
+        { value: 45, label: '45min', description: 'Deep meditation', baseXP: 20 },
+        { value: 60, label: '1hr', description: 'Extended practice', baseXP: 25 }
       ]
     case 'reading':
       return [
-        { value: 30, label: '30min', description: 'Light reading' },
-        { value: 60, label: '1hr', description: 'Daily reading' },
-        { value: 90, label: '1.5hr', description: 'Book lover' },
-        { value: 120, label: '2hr', description: 'Scholar level' }
+        { value: 30, label: '30min', description: 'Light reading', baseXP: 10 },
+        { value: 60, label: '1hr', description: 'Daily reading', baseXP: 15 },
+        { value: 90, label: '1.5hr', description: 'Book lover', baseXP: 20 },
+        { value: 120, label: '2hr', description: 'Scholar level', baseXP: 25 }
       ]
     default:
       return []
