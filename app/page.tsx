@@ -10,6 +10,11 @@ interface Habit {
   xpEarned: number
   icon: string
   lastCompletedDate?: string
+  type: 'water' | 'exercise' | 'meditation' | 'reading'
+  target: number
+  targetUnit: string
+  progress: number
+  progressUnit: string
 }
 
 interface Badge {
@@ -52,51 +57,99 @@ const getInitialBadges = (): Badge[] => [
     id: 'hydration-hero',
     name: 'Hydration Hero',
     icon: '💧',
-    condition: (habits: Habit[]) => habits.find(h => h.name === 'Drink Water' && h.streakCount >= 7) !== undefined,
-    unlocked: false
-  },
-  {
-    id: 'mindful-master',
-    name: 'Mindful Master',
-    icon: '🧘‍♀️',
-    condition: (habits: Habit[]) => habits.find(h => h.name === 'Meditate' && h.streakCount >= 5) !== undefined,
-    unlocked: false
-  },
-  {
-    id: 'consistency-champ',
-    name: 'Consistency Champ',
-    icon: '👑',
-    condition: (habits: Habit[]) => habits.every(h => h.streakCount >= 7),
+    condition: (habits: Habit[]) => habits.find(h => h.type === 'water' && h.streakCount >= 7) !== undefined,
     unlocked: false
   },
   {
     id: 'fitness-warrior',
     name: 'Fitness Warrior',
     icon: '🏃‍♂️',
-    condition: (habits: Habit[]) => habits.find(h => h.name === 'Exercise' && h.streakCount >= 5) !== undefined,
+    condition: (habits: Habit[]) => habits.find(h => h.type === 'exercise' && h.streakCount >= 7) !== undefined,
+    unlocked: false
+  },
+  {
+    id: 'mindful-master',
+    name: 'Mindful Master',
+    icon: '🧘‍♀️',
+    condition: (habits: Habit[]) => habits.find(h => h.type === 'meditation' && h.streakCount >= 7) !== undefined,
     unlocked: false
   },
   {
     id: 'knowledge-seeker',
     name: 'Knowledge Seeker',
     icon: '📚',
-    condition: (habits: Habit[]) => habits.find(h => h.name === 'Read' && h.streakCount >= 3) !== undefined,
+    condition: (habits: Habit[]) => habits.find(h => h.type === 'reading' && h.streakCount >= 7) !== undefined,
     unlocked: false
   },
   {
     id: 'wellness-champion',
     name: 'Wellness Champion',
     icon: '🏆',
-    condition: (habits: Habit[]) => habits.reduce((sum, h) => sum + h.streakCount, 0) >= 20,
+    condition: (habits: Habit[]) => habits.every(h => h.streakCount >= 30),
+    unlocked: false
+  },
+  {
+    id: 'consistency-master',
+    name: 'Consistency Master',
+    icon: '👑',
+    condition: (habits: Habit[]) => habits.filter(h => h.streakCount >= 14).length >= 3,
     unlocked: false
   }
 ]
 
 const getInitialHabits = (): Habit[] => [
-  { id: '1', name: 'Drink Water', streakCount: 0, completedToday: false, xpEarned: 0, icon: '💧' },
-  { id: '2', name: 'Exercise', streakCount: 0, completedToday: false, xpEarned: 0, icon: '🏃‍♂️' },
-  { id: '3', name: 'Meditate', streakCount: 0, completedToday: false, xpEarned: 0, icon: '🧘‍♀️' },
-  { id: '4', name: 'Read', streakCount: 0, completedToday: false, xpEarned: 0, icon: '📚' },
+  {
+    id: '1',
+    name: 'Drink Water',
+    type: 'water',
+    target: 3,
+    targetUnit: 'L',
+    progress: 0,
+    progressUnit: 'L',
+    streakCount: 0,
+    completedToday: false,
+    xpEarned: 0,
+    icon: '💧'
+  },
+  {
+    id: '2',
+    name: 'Exercise',
+    type: 'exercise',
+    target: 60,
+    targetUnit: 'min',
+    progress: 0,
+    progressUnit: 'min',
+    streakCount: 0,
+    completedToday: false,
+    xpEarned: 0,
+    icon: '🏃‍♂️'
+  },
+  {
+    id: '3',
+    name: 'Meditate',
+    type: 'meditation',
+    target: 30,
+    targetUnit: 'min',
+    progress: 0,
+    progressUnit: 'min',
+    streakCount: 0,
+    completedToday: false,
+    xpEarned: 0,
+    icon: '🧘‍♀️'
+  },
+  {
+    id: '4',
+    name: 'Read',
+    type: 'reading',
+    target: 60,
+    targetUnit: 'min',
+    progress: 0,
+    progressUnit: 'min',
+    streakCount: 0,
+    completedToday: false,
+    xpEarned: 0,
+    icon: '📚'
+  },
 ]
 
 const getTodayKey = () => new Date().toDateString()
