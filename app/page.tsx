@@ -1,13 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Habit {
   id: string
   name: string
-  streak: number
-  completed: boolean
+  streakCount: number
+  completedToday: boolean
+  xpEarned: number
   icon: string
+  lastCompletedDate?: string
+}
+
+interface Badge {
+  id: string
+  name: string
+  icon: string
+  condition: (habits: Habit[]) => boolean
+  unlocked: boolean
+  unlockedDate?: string
+}
+
+interface UserData {
+  habits: Habit[]
+  totalXP: number
+  level: number
+  badges: Badge[]
+  lastVisitDate: string
 }
 
 const motivationalQuotes = [
@@ -15,20 +34,87 @@ const motivationalQuotes = [
   "Every small step counts! 💫",
   "You're building something amazing! ✨",
   "Consistency is your superpower! 🚀",
-  "Today's effort is tomorrow's strength! 💪"
+  "Today's effort is tomorrow's strength! 💪",
+  "Small daily improvements lead to stunning results! 🎯",
+  "Your wellness journey is unique and beautiful! 🌸",
+  "Every habit completed is a victory! 🏆",
+  "Believe in the power of your daily choices! ⭐",
+  "You're stronger than you think! 💪",
+  "Mindful moments create magical transformations! 🧘‍♀️",
+  "Your health is your greatest wealth! 💎",
+  "Celebrate every small win today! 🎉",
+  "Consistency beats perfection every time! 🔥",
+  "You're writing your wellness story daily! 📖"
 ]
 
-export default function Home() {
-  const [habits, setHabits] = useState<Habit[]>([
-    { id: '1', name: 'Drink Water', streak: 7, completed: false, icon: '💧' },
-    { id: '2', name: 'Exercise', streak: 3, completed: false, icon: '🏃‍♂️' },
-    { id: '3', name: 'Meditate', streak: 5, completed: false, icon: '🧘‍♀️' },
-    { id: '4', name: 'Read', streak: 2, completed: false, icon: '📚' },
-  ])
+const getInitialBadges = (): Badge[] => [
+  {
+    id: 'hydration-hero',
+    name: 'Hydration Hero',
+    icon: '💧',
+    condition: (habits: Habit[]) => habits.find(h => h.name === 'Drink Water' && h.streakCount >= 7) !== undefined,
+    unlocked: false
+  },
+  {
+    id: 'mindful-master',
+    name: 'Mindful Master',
+    icon: '🧘‍♀️',
+    condition: (habits: Habit[]) => habits.find(h => h.name === 'Meditate' && h.streakCount >= 5) !== undefined,
+    unlocked: false
+  },
+  {
+    id: 'consistency-champ',
+    name: 'Consistency Champ',
+    icon: '👑',
+    condition: (habits: Habit[]) => habits.every(h => h.streakCount >= 7),
+    unlocked: false
+  },
+  {
+    id: 'fitness-warrior',
+    name: 'Fitness Warrior',
+    icon: '��‍♂️',
+    condition: (habits: Habit[]) => habits.find(h => h.name === 'Exercise' && h.streakCount >= 5) !== undefined,
+    unlocked: false
+  },
+  {
+    id: 'knowledge-seeker',
+    name: 'Knowledge Seeker',
+    icon: '📚',
+    condition: (habits: Habit[]) => habits.find(h => h.name === 'Read' && h.streakCount >= 3) !== undefined,
+    unlocked: false
+  },
+  {
+    id: 'wellness-champion',
+    name: 'Wellness Champion',
+    icon: '🏆',
+    condition: (habits: Habit[]) => habits.reduce((sum, h) => sum + h.streakCount, 0) >= 20,
+    unlocked: false
+  }
+]
 
-  const [xp, setXp] = useState(250)
-  const [level, setLevel] = useState(3)
-  const [todayQuote] = useState(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)])
+const getInitialHabits = (): Habit[] => [
+  { id: '1', name: 'Drink Water', streakCount: 0, completedToday: false, xpEarned: 0, icon: '💧' },
+  { id: '2', name: 'Exercise', streakCount: 0, completedToday: false, xpEarned: 0, icon: '🏃‍♂️' },
+  { id: '3', name: 'Meditate', streakCount: 0, completedToday: false, xpEarned: 0, icon: '🧘‍♀️' },
+  { id: '4', name: 'Read', streakCount: 0, completedToday: false, xpEarned: 0, icon: '📚' },
+]
+
+const getTodayKey = () => new Date().toDateString()
+const getLevel = (xp: number) => Math.floor(xp / 100) + 1
+const getXPForNextLevel = (level: number) => level * 100
+const getXPProgress = (xp: number, level: number) => xp - ((level - 1) * 100)
+
+export default function Home() {
+  const [userData, setUserData] = useState<UserData>({
+    habits: getInitialHabits(),
+    totalXP: 0,
+    level: 1,
+    badges: getInitialBadges(),
+    lastVisitDate: getTodayKey()
+  })
+  const [todayQuote, setTodayQuote] = useState('')
+  const [newBadges, setNewBadges] = useState<Badge[]>([])
+  const [showConfetti, setShowConfetti] = useState(false)
 
   const toggleHabit = (id: string) => {
     setHabits(habits.map(habit => {
