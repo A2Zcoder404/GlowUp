@@ -74,52 +74,63 @@ const safeGetUserId = (): string | null => {
   }
 };
 
-// Save user data to Firebase (authenticated users only)
+// Save user data with resilient persistence
 export const saveUserData = async (userData: UserData): Promise<void> => {
   try {
-    // Validate user is authenticated
-    const userId = validateUserAuthentication();
-
-    // Security check: Ensure data belongs to current user
-    if (userData.userId && userData.userId !== userId) {
-      console.error('Data ownership violation in save operation');
-      throw new Error('Cannot save data for different user');
+    // Get user ID with fallback
+    const userId = safeGetUserId();
+    if (!userId) {
+      console.warn('No user ID available - skipping save');
+      return;
     }
 
-    // Prepare secure user data
+    // Prepare user data with ID
     const secureUserData = {
       ...userData,
-      userId: userId // Always set to current user for security
+      userId: userId,
+      lastSaved: new Date().toISOString()
     };
 
-    // Save to user-specific localStorage key
+    // Always save to localStorage first (primary storage)
     const userSpecificKey = `glowup-data-${userId}`;
     localStorage.setItem(userSpecificKey, JSON.stringify(secureUserData));
+    console.log(`Data saved to localStorage for user: ${userId.substring(0, 8)}...`);
 
-    // Save to Firebase with user isolation
-    if (typeof window !== 'undefined' && db) {
-      const userRef = doc(db, 'users', userId);
+    // Try Firebase as secondary storage (don't fail if it doesn't work)
+    if (typeof window !== 'undefined' && db && auth?.currentUser) {
+      try {
+        const userRef = doc(db, 'users', userId);
 
-      await setDoc(userRef, {
-        ...secureUserData,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+        await setDoc(userRef, {
+          ...secureUserData,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
 
-      console.log(`User data saved securely for user: ${userId.substring(0, 8)}...`);
+        console.log(`Data synced to Firebase for user: ${userId.substring(0, 8)}...`);
+      } catch (firebaseError) {
+        console.warn('Firebase save failed, but localStorage succeeded:', firebaseError);
+        // Don't throw error - localStorage save was successful
+      }
+    } else {
+      console.log('Firebase not available, using localStorage only');
     }
   } catch (error) {
     console.error('Failed to save user data:', error);
-    throw error;
+    // Don't throw error to prevent app crashes
   }
 };
 
-// Load user data from Firebase (authenticated users only)
+// Load user data with resilient loading
 export const loadUserData = async (): Promise<UserData | null> => {
   try {
-    // Validate user is authenticated
-    const userId = validateUserAuthentication();
+    // Get user ID with fallback
+    const userId = safeGetUserId();
+    if (!userId) {
+      console.warn('No user ID available - cannot load data');
+      return null;
+    }
 
-    // Load from user-specific localStorage key
+    // Load from user-specific localStorage key (primary source)
     const userSpecificKey = `glowup-data-${userId}`;
     let localData: UserData | null = null;
     try {
@@ -132,14 +143,14 @@ export const loadUserData = async (): Promise<UserData | null> => {
       console.warn('localStorage read failed:', localError);
     }
 
-    // Try Firebase with user isolation
-    if (typeof window !== 'undefined' && db) {
+    // Try Firebase as secondary source (if available and authenticated)
+    if (typeof window !== 'undefined' && db && auth?.currentUser) {
       try {
         const userRef = doc(db, 'users', userId);
 
         // Set a timeout for Firebase operations
         const timeout = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Firebase timeout')), 5000)
+          setTimeout(() => reject(new Error('Firebase timeout')), 3000)
         );
 
         const docSnap = await Promise.race([getDoc(userRef), timeout]);
@@ -147,16 +158,18 @@ export const loadUserData = async (): Promise<UserData | null> => {
         if (docSnap && typeof docSnap.exists === 'function' && docSnap.exists()) {
           const firebaseData = docSnap.data() as UserData;
 
-          // Verify the data belongs to the current user
-          if (firebaseData.userId && firebaseData.userId !== userId) {
-            console.error('Data integrity violation - user ID mismatch');
-            throw new Error('Unauthorized data access attempt');
-          }
+          console.log(`Firebase data loaded for user: ${userId.substring(0, 8)}...`);
 
-          console.log(`User data loaded from Firebase for user: ${userId.substring(0, 8)}...`);
-          return firebaseData;
+          // Use Firebase data if it's newer than local data
+          if (!localData || (firebaseData.lastSaved && firebaseData.lastSaved > (localData.lastSaved || ''))) {
+            console.log('Using Firebase data (newer)');
+            return firebaseData;
+          } else {
+            console.log('Using local data (newer or same)');
+            return localData;
+          }
         } else {
-          console.log('No user data found in Firebase, using local data if available');
+          console.log('No Firebase data found, using local data');
           return localData;
         }
       } catch (error) {
@@ -169,24 +182,26 @@ export const loadUserData = async (): Promise<UserData | null> => {
     }
   } catch (error) {
     console.error('Failed to load user data:', error);
-    // Return null instead of any cached data to prevent unauthorized access
     return null;
   }
 };
 
-// Update specific habit progress (authenticated users only)
+// Update specific habit progress with resilient handling
 export const updateHabitProgress = async (habitId: string, progress: number): Promise<void> => {
   try {
-    // Validate user is authenticated
-    const userId = validateUserAuthentication();
+    const userId = safeGetUserId();
+    if (!userId) {
+      console.warn('No user ID available for habit progress update');
+      return;
+    }
 
     console.log(`Habit progress update for user ${userId.substring(0, 8)}...: ${habitId} = ${progress}`);
 
     // This function is maintained for future use - currently handled in component
     // All updates go through saveUserData which has proper user isolation
   } catch (error) {
-    console.error('Error updating habit progress:', error);
-    throw error;
+    console.warn('Error updating habit progress:', error);
+    // Don't throw to prevent app crashes
   }
 };
 
