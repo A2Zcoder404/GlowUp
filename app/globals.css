@@ -41,7 +41,7 @@ body::before {
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Orbitron', monospace;
   font-weight: 700;
-  text-shadow: 0 0 10px currentColor;
+  text-shadow: 0 0 3px currentColor;
 }
 
 .glow-card {
@@ -70,8 +70,9 @@ h1, h2, h3, h4, h5, h6 {
   transition: opacity 0.3s ease;
 }
 
+/* Removed hover gradient effect */
 .glow-card:hover::before {
-  opacity: 0.7;
+  opacity: 0;
 }
 
 .habit-card {
@@ -83,11 +84,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .habit-card:hover {
-  box-shadow:
-    0 0 25px rgba(0, 255, 255, 0.4),
-    0 0 50px rgba(0, 255, 255, 0.2);
   transform: translateY(-2px);
-  border-color: rgba(0, 255, 255, 0.5);
+  border-color: rgba(0, 255, 255, 0.3);
 }
 
 .habit-completed {
@@ -125,34 +123,29 @@ h1, h2, h3, h4, h5, h6 {
 .neon-text {
   color: #00ffff;
   text-shadow:
-    0 0 5px #00ffff,
-    0 0 10px #00ffff,
-    0 0 15px #00ffff,
-    0 0 20px #00ffff;
+    0 0 2px #00ffff,
+    0 0 4px #00ffff;
 }
 
 .neon-pink {
   color: #ff00ff;
   text-shadow:
-    0 0 5px #ff00ff,
-    0 0 10px #ff00ff,
-    0 0 15px #ff00ff;
+    0 0 2px #ff00ff,
+    0 0 4px #ff00ff;
 }
 
 .neon-green {
   color: #00ff00;
   text-shadow:
-    0 0 5px #00ff00,
-    0 0 10px #00ff00,
-    0 0 15px #00ff00;
+    0 0 2px #00ff00,
+    0 0 4px #00ff00;
 }
 
 .neon-yellow {
   color: #ffff00;
   text-shadow:
-    0 0 5px #ffff00,
-    0 0 10px #ffff00,
-    0 0 15px #ffff00;
+    0 0 2px #ffff00,
+    0 0 4px #ffff00;
 }
 
 @keyframes neon-pulse {
@@ -302,10 +295,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .mission-card:hover {
-  border-color: rgba(0, 255, 255, 0.5);
-  box-shadow:
-    0 0 25px rgba(0, 255, 255, 0.3),
-    0 0 50px rgba(0, 255, 255, 0.1);
+  border-color: rgba(0, 255, 255, 0.3);
 }
 
 .mission-complete {
