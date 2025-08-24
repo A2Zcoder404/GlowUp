@@ -1,37 +1,26 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import SettingsModal from '../components/SettingsModal'
+import {
+  saveUserData,
+  loadUserData,
+  checkAndResetDailyProgress,
+  getInitialHabits,
+  getInitialBadges,
+  type UserData,
+  type Habit,
+  type Badge
+} from '../lib/database'
 
-interface Habit {
-  id: string
-  name: string
-  streakCount: number
-  completedToday: boolean
-  xpEarned: number
-  icon: string
-  lastCompletedDate?: string
-  type: 'water' | 'exercise' | 'meditation' | 'reading'
-  target: number
-  targetUnit: string
-  progress: number
-  progressUnit: string
-}
-
-interface Badge {
-  id: string
-  name: string
-  icon: string
-  condition: (habits: Habit[]) => boolean
-  unlocked: boolean
-  unlockedDate?: string
-}
-
-interface UserData {
-  habits: Habit[]
-  totalXP: number
-  level: number
-  badges: Badge[]
-  lastVisitDate: string
+// Badge condition functions (not stored in Firebase)
+const badgeConditions: Record<string, (habits: Habit[]) => boolean> = {
+  'hydration-hero': (habits: Habit[]) => habits.find(h => h.type === 'water' && h.streakCount >= 7) !== undefined,
+  'fitness-warrior': (habits: Habit[]) => habits.find(h => h.type === 'exercise' && h.streakCount >= 7) !== undefined,
+  'mindful-master': (habits: Habit[]) => habits.find(h => h.type === 'meditation' && h.streakCount >= 7) !== undefined,
+  'knowledge-seeker': (habits: Habit[]) => habits.find(h => h.type === 'reading' && h.streakCount >= 7) !== undefined,
+  'wellness-champion': (habits: Habit[]) => habits.every(h => h.streakCount >= 30),
+  'consistency-master': (habits: Habit[]) => habits.filter(h => h.streakCount >= 14).length >= 3,
 }
 
 const motivationalQuotes = [
@@ -52,105 +41,6 @@ const motivationalQuotes = [
   "You're writing your wellness story daily! 📖"
 ]
 
-const getInitialBadges = (): Badge[] => [
-  {
-    id: 'hydration-hero',
-    name: 'Hydration Hero',
-    icon: '💧',
-    condition: (habits: Habit[]) => habits.find(h => h.type === 'water' && h.streakCount >= 7) !== undefined,
-    unlocked: false
-  },
-  {
-    id: 'fitness-warrior',
-    name: 'Fitness Warrior',
-    icon: '🏃‍♂️',
-    condition: (habits: Habit[]) => habits.find(h => h.type === 'exercise' && h.streakCount >= 7) !== undefined,
-    unlocked: false
-  },
-  {
-    id: 'mindful-master',
-    name: 'Mindful Master',
-    icon: '🧘‍♀️',
-    condition: (habits: Habit[]) => habits.find(h => h.type === 'meditation' && h.streakCount >= 7) !== undefined,
-    unlocked: false
-  },
-  {
-    id: 'knowledge-seeker',
-    name: 'Knowledge Seeker',
-    icon: '📚',
-    condition: (habits: Habit[]) => habits.find(h => h.type === 'reading' && h.streakCount >= 7) !== undefined,
-    unlocked: false
-  },
-  {
-    id: 'wellness-champion',
-    name: 'Wellness Champion',
-    icon: '🏆',
-    condition: (habits: Habit[]) => habits.every(h => h.streakCount >= 30),
-    unlocked: false
-  },
-  {
-    id: 'consistency-master',
-    name: 'Consistency Master',
-    icon: '👑',
-    condition: (habits: Habit[]) => habits.filter(h => h.streakCount >= 14).length >= 3,
-    unlocked: false
-  }
-]
-
-const getInitialHabits = (): Habit[] => [
-  {
-    id: '1',
-    name: 'Drink Water',
-    type: 'water',
-    target: 3,
-    targetUnit: 'L',
-    progress: 0,
-    progressUnit: 'L',
-    streakCount: 0,
-    completedToday: false,
-    xpEarned: 0,
-    icon: '💧'
-  },
-  {
-    id: '2',
-    name: 'Exercise',
-    type: 'exercise',
-    target: 60,
-    targetUnit: 'min',
-    progress: 0,
-    progressUnit: 'min',
-    streakCount: 0,
-    completedToday: false,
-    xpEarned: 0,
-    icon: '🏃‍♂️'
-  },
-  {
-    id: '3',
-    name: 'Meditate',
-    type: 'meditation',
-    target: 30,
-    targetUnit: 'min',
-    progress: 0,
-    progressUnit: 'min',
-    streakCount: 0,
-    completedToday: false,
-    xpEarned: 0,
-    icon: '🧘‍♀️'
-  },
-  {
-    id: '4',
-    name: 'Read',
-    type: 'reading',
-    target: 60,
-    targetUnit: 'min',
-    progress: 0,
-    progressUnit: 'min',
-    streakCount: 0,
-    completedToday: false,
-    xpEarned: 0,
-    icon: '📚'
-  },
-]
 
 const getTodayKey = () => new Date().toDateString()
 const getLevel = (xp: number) => {
@@ -224,78 +114,76 @@ export default function Home() {
   const [todayQuote, setTodayQuote] = useState('')
   const [newBadges, setNewBadges] = useState<Badge[]>([])
   const [showConfetti, setShowConfetti] = useState(false)
-  const [showTargetModal, setShowTargetModal] = useState<string | null>(null)
-  const [showProgressModal, setShowProgressModal] = useState<string | null>(null)
+  const [showSettingsModal, setShowSettingsModal] = useState<string | null>(null)
   const [toastMessage, setToastMessage] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Load data from localStorage on mount
+  // Load data from Firebase on mount
   useEffect(() => {
-    const savedData = localStorage.getItem('glowup-data')
-    if (savedData) {
-      const parsed = JSON.parse(savedData) as UserData
+    const loadData = async () => {
+      setIsLoading(true)
+      try {
+        const savedData = await loadUserData()
 
-      // Restore badge condition functions (they don't serialize to JSON)
-      const initialBadges = getInitialBadges()
-      const restoredBadges = parsed.badges.map(savedBadge => {
-        const initialBadge = initialBadges.find(b => b.id === savedBadge.id)
-        return {
-          ...savedBadge,
-          condition: initialBadge?.condition || (() => false) // Restore the function
-        }
-      })
+        if (savedData) {
+          // Check for new day and reset progress
+          const updatedData = checkAndResetDailyProgress(savedData)
 
-      // Add any new badges that might not exist in saved data
-      initialBadges.forEach(initialBadge => {
-        if (!restoredBadges.find(b => b.id === initialBadge.id)) {
-          restoredBadges.push(initialBadge)
-        }
-      })
+          // Add any missing badges
+          const currentBadgeIds = updatedData.badges.map(b => b.id)
+          const initialBadges = getInitialBadges()
+          const missingBadges = initialBadges.filter(b => !currentBadgeIds.includes(b.id))
 
-      // Check if it's a new day - reset daily progress but maintain streaks and targets
-      const today = getTodayKey()
-      if (parsed.lastVisitDate !== today) {
-        const resetHabits = parsed.habits.map(habit => {
-          const targetMet = (habit.progress || 0) >= (habit.target || 1)
-          return {
-            ...habit,
-            id: habit.id || '',
-            name: habit.name || '',
-            type: habit.type || 'water',
-            target: habit.target || 1,
-            targetUnit: habit.targetUnit || 'L',
-            progress: 0, // Reset daily progress
-            progressUnit: habit.progressUnit || habit.targetUnit || 'L',
-            streakCount: targetMet && habit.lastCompletedDate === parsed.lastVisitDate ? (habit.streakCount || 0) : 0,
-            completedToday: false,
-            xpEarned: habit.xpEarned || 0,
-            icon: habit.icon || '💧',
-            lastCompletedDate: habit.lastCompletedDate
+          if (missingBadges.length > 0) {
+            updatedData.badges.push(...missingBadges)
           }
-        })
 
+          setUserData(updatedData)
+
+          // Save back to Firebase if we made changes
+          if (updatedData !== savedData) {
+            await saveUserData(updatedData)
+          }
+        } else {
+          // Initialize with default data
+          const initialData: UserData = {
+            habits: getInitialHabits(),
+            totalXP: 0,
+            level: 1,
+            badges: getInitialBadges(),
+            lastVisitDate: getTodayKey()
+          }
+          setUserData(initialData)
+          await saveUserData(initialData)
+        }
+      } catch (error) {
+        console.error('Error loading data:', error)
+        // Fallback to default data
         setUserData({
-          ...parsed,
-          habits: resetHabits,
-          badges: restoredBadges,
-          lastVisitDate: today
-        })
-      } else {
-        setUserData({
-          ...parsed,
-          badges: restoredBadges
+          habits: getInitialHabits(),
+          totalXP: 0,
+          level: 1,
+          badges: getInitialBadges(),
+          lastVisitDate: getTodayKey()
         })
       }
+
+      setIsLoading(false)
     }
+
+    loadData()
 
     // Set daily quote based on date
     const quoteIndex = new Date().getDate() % motivationalQuotes.length
     setTodayQuote(motivationalQuotes[quoteIndex])
   }, [])
 
-  // Save to localStorage whenever userData changes
+  // Save to Firebase whenever userData changes
   useEffect(() => {
-    localStorage.setItem('glowup-data', JSON.stringify(userData))
-  }, [userData])
+    if (!isLoading) {
+      saveUserData(userData)
+    }
+  }, [userData, isLoading])
 
   const updateHabitProgress = (id: string, newProgress: number) => {
     setUserData(prev => {
@@ -335,9 +223,9 @@ export default function Home() {
 
       // Check for new badges
       const updatedBadges = prev.badges.map(badge => {
-        // Safety check: ensure condition is a function
-        if (typeof badge.condition === 'function') {
-          const shouldUnlock = badge.condition(updatedHabits) && !badge.unlocked
+        const condition = badgeConditions[badge.id]
+        if (condition && typeof condition === 'function') {
+          const shouldUnlock = condition(updatedHabits) && !badge.unlocked
           if (shouldUnlock) {
             setNewBadges(prevNew => [...prevNew, badge])
             setShowConfetti(true)
@@ -390,6 +278,18 @@ export default function Home() {
     const current = getXPProgress(userData.totalXP, userData.level)
     const needed = getXPForNextLevel(userData.level)
     return (current / needed) * 100
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">⚡</div>
+          <div className="text-xl neon-text font-bold">LOADING MISSION DATA...</div>
+          <div className="text-sm text-cyan-300 mt-2">Connecting to Firebase...</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -518,12 +418,10 @@ export default function Home() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
-                            const newTarget = habit.type === 'water'
-                              ? habit.target === 2 ? 3 : habit.target === 3 ? 4 : habit.target === 4 ? 6 : 2
-                              : habit.target === 30 ? 60 : habit.target === 60 ? 90 : habit.target === 90 ? 120 : 30
-                            updateHabitTarget(habit.id, newTarget)
+                            setShowSettingsModal(habit.id)
                           }}
-                          className="text-pink-400 font-bold hover:text-pink-300 transition-colors"
+                          className="text-pink-400 font-bold hover:text-pink-300 transition-colors hover:scale-105 transform"
+                          title="Open Mission Settings"
                         >
                           {habit.target}{habit.targetUnit} ⚙️
                         </button>
@@ -658,6 +556,16 @@ export default function Home() {
           <div className="fixed top-4 right-4 z-50 bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-3 rounded-lg font-bold shadow-lg animate-bounce">
             {toastMessage}
           </div>
+        )}
+
+        {/* Settings Modal */}
+        {showSettingsModal && (
+          <SettingsModal
+            habit={userData.habits.find(h => h.id === showSettingsModal)!}
+            isOpen={!!showSettingsModal}
+            onClose={() => setShowSettingsModal(null)}
+            onUpdateTarget={updateHabitTarget}
+          />
         )}
       </div>
     </div>
