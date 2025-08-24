@@ -44,26 +44,34 @@ export interface UserData {
   updatedAt?: Timestamp
 }
 
-// Get authenticated user ID with security checks
-const getUserId = (): string | null => {
+// Get authenticated user ID with fallback for data persistence
+const getUserId = (): string => {
   const user = auth?.currentUser;
   if (user && user.uid) {
-    // Only return UID for properly authenticated users
+    // Return UID for properly authenticated users
     return user.uid;
   }
 
-  // Return null if no authenticated user - no fallback to prevent data mixing
-  console.warn('No authenticated user found - user data operations will be blocked');
-  return null;
+  // Fallback to session storage to maintain data across page reloads
+  let sessionUserId = sessionStorage.getItem('glowup-session-user');
+  if (!sessionUserId) {
+    // Create a temporary session ID if none exists
+    sessionUserId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('glowup-session-user', sessionUserId);
+  }
+
+  console.log('Using session fallback for user data operations');
+  return sessionUserId;
 };
 
-// Validate user is authenticated before any data operations
-const validateUserAuthentication = (): string => {
-  const userId = getUserId();
-  if (!userId) {
-    throw new Error('User must be authenticated to access data');
+// Get user ID with error handling
+const safeGetUserId = (): string | null => {
+  try {
+    return getUserId();
+  } catch (error) {
+    console.warn('Could not get user ID:', error);
+    return null;
   }
-  return userId;
 };
 
 // Save user data to Firebase (authenticated users only)
