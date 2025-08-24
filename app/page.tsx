@@ -32,7 +32,7 @@ const motivationalQuotes = [
   "Small daily improvements lead to stunning results! 🎯",
   "Your wellness journey is unique and beautiful! 🌸",
   "Every habit completed is a victory! 🏆",
-  "Believe in the power of your daily choices! ⭐",
+  "Believe in the power of your daily choices! ���",
   "You're stronger than you think! 💪",
   "Mindful moments create magical transformations! 🧘‍♀️",
   "Your health is your greatest wealth! 💎",
@@ -313,11 +313,17 @@ export default function Home() {
         <div className="text-center mb-8 floating">
           <h1 className="text-6xl font-black neon-text neon-flicker mb-4">⚡ GLOWUP ⚡</h1>
           <p className="text-xl text-cyan-300 font-medium tracking-wide">GAMIFY YOUR WELLNESS JOURNEY</p>
-          <div className="flex justify-center space-x-2 mt-2 text-2xl">
-            <span className="neon-pink">●</span>
-            <span className="neon-text">●</span>
-            <span className="neon-green">●</span>
-            <span className="neon-yellow">●</span>
+          <div className="flex justify-center items-center space-x-4 mt-3">
+            <div className="flex space-x-2 text-2xl">
+              <span className="neon-pink">●</span>
+              <span className="neon-text">●</span>
+              <span className="neon-green">●</span>
+              <span className="neon-yellow">●</span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-green-400 font-bold">FIREBASE CONNECTED</span>
+            </div>
           </div>
         </div>
 
