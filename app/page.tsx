@@ -331,14 +331,26 @@ export default function Home() {
       setTimeout(() => setToastMessage(''), 2000)
     }
 
-    setUserData(prev => ({
-      ...prev,
-      habits: prev.habits.map(habit =>
-        habit.id === id
-          ? { ...habit, target: newTarget, xpEarned: calculateXPFromProgress({ ...habit, target: newTarget }) }
-          : habit
-      )
-    }))
+    setUserData(prev => {
+      const updatedHabits = prev.habits.map(habit => {
+        if (habit.id === id) {
+          const updatedHabit = { ...habit, target: newTarget }
+          const newXP = calculateXPFromProgress(updatedHabit)
+          return { ...updatedHabit, xpEarned: newXP }
+        }
+        return habit
+      })
+
+      const newTotalXP = updatedHabits.reduce((sum, h) => sum + h.xpEarned, 0)
+      const newLevel = getLevel(newTotalXP)
+
+      return {
+        ...prev,
+        habits: updatedHabits,
+        totalXP: newTotalXP,
+        level: newLevel
+      }
+    })
   }
 
   const dismissNewBadges = () => {
