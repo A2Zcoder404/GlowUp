@@ -264,7 +264,7 @@ export default function SettingsModal({ habit, isOpen, onClose, onUpdateTarget }
                       className="w-full p-3 bg-gray-800/80 border border-pink-400/50 rounded-lg text-white font-bold text-center focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-400/20"
                     />
                     <div className="text-xs text-gray-400 text-center mt-2">
-                      Custom target XP: {showCustom && customTarget ? calculateXPFromProgress(habit, parseFloat(customTarget) || habit.target) : 0} XP
+                      Custom target XP: {showCustom && customTarget ? getBaseXPForTarget(habit.type, parseFloat(customTarget) || habit.target) : 0} XP (base reward)
                     </div>
                   </div>
                 )}
