@@ -166,7 +166,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={() => testFirebaseConnection()}
+                className="text-xs text-yellow-300 hover:text-yellow-100 font-medium transition-colors mb-2 block w-full"
+              >
+                🔧 Test Firebase Connection (Check Console)
+              </button>
+            </div>
+
+            <div className="mt-2 text-center">
               <button
                 onClick={toggleMode}
                 className="text-cyan-300 hover:text-cyan-100 font-medium transition-colors"
@@ -206,7 +216,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
         {/* Footer */}
         <div className="text-center mt-6 text-gray-400 text-sm">
-          <p>🌟 Transform your wellness journey into an epic adventure 🌟</p>
+          <p>🌟 Transform your wellness journey into an epic adventure ��</p>
         </div>
       </div>
     </div>
