@@ -72,21 +72,32 @@ export const saveUserData = async (userData: UserData): Promise<void> => {
     // Validate user is authenticated
     const userId = validateUserAuthentication();
 
+    // Security check: Ensure data belongs to current user
+    if (userData.userId && userData.userId !== userId) {
+      console.error('Data ownership violation in save operation');
+      throw new Error('Cannot save data for different user');
+    }
+
+    // Prepare secure user data
+    const secureUserData = {
+      ...userData,
+      userId: userId // Always set to current user for security
+    };
+
     // Save to user-specific localStorage key
     const userSpecificKey = `glowup-data-${userId}`;
-    localStorage.setItem(userSpecificKey, JSON.stringify(userData));
+    localStorage.setItem(userSpecificKey, JSON.stringify(secureUserData));
 
     // Save to Firebase with user isolation
     if (typeof window !== 'undefined' && db) {
       const userRef = doc(db, 'users', userId);
 
       await setDoc(userRef, {
-        ...userData,
-        userId: userId, // Explicit user ID for extra security
+        ...secureUserData,
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      console.log(`User data saved successfully for user: ${userId.substring(0, 8)}...`);
+      console.log(`User data saved securely for user: ${userId.substring(0, 8)}...`);
     }
   } catch (error) {
     console.error('Failed to save user data:', error);
