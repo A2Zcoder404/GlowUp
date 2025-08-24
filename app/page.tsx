@@ -235,27 +235,49 @@ export default function Home() {
     if (savedData) {
       const parsed = JSON.parse(savedData) as UserData
 
+      // Restore badge condition functions (they don't serialize to JSON)
+      const initialBadges = getInitialBadges()
+      const restoredBadges = parsed.badges.map(savedBadge => {
+        const initialBadge = initialBadges.find(b => b.id === savedBadge.id)
+        return {
+          ...savedBadge,
+          condition: initialBadge?.condition || (() => false) // Fallback condition
+        }
+      })
+
       // Check if it's a new day - reset daily progress but maintain streaks and targets
       const today = getTodayKey()
       if (parsed.lastVisitDate !== today) {
         const resetHabits = parsed.habits.map(habit => {
           const targetMet = habit.progress >= habit.target
+          // Ensure all required properties exist with fallbacks
           return {
-            ...habit,
-            completedToday: false,
+            id: habit.id || '',
+            name: habit.name || '',
+            type: habit.type || 'water',
+            target: habit.target || 1,
+            targetUnit: habit.targetUnit || 'L',
             progress: 0, // Reset daily progress
-            // If user didn't meet target yesterday, reset streak
-            streakCount: targetMet && habit.lastCompletedDate === parsed.lastVisitDate ? habit.streakCount : 0
+            progressUnit: habit.progressUnit || habit.targetUnit || 'L',
+            streakCount: targetMet && habit.lastCompletedDate === parsed.lastVisitDate ? habit.streakCount : 0,
+            completedToday: false,
+            xpEarned: habit.xpEarned || 0,
+            icon: habit.icon || '💧',
+            lastCompletedDate: habit.lastCompletedDate
           }
         })
 
         setUserData({
           ...parsed,
           habits: resetHabits,
+          badges: restoredBadges,
           lastVisitDate: today
         })
       } else {
-        setUserData(parsed)
+        setUserData({
+          ...parsed,
+          badges: restoredBadges
+        })
       }
     }
 
@@ -298,12 +320,15 @@ export default function Home() {
 
       // Check for new badges
       const updatedBadges = prev.badges.map(badge => {
-        const shouldUnlock = badge.condition(updatedHabits) && !badge.unlocked
-        if (shouldUnlock) {
-          setNewBadges(prevNew => [...prevNew, badge])
-          setShowConfetti(true)
-          setTimeout(() => setShowConfetti(false), 3000)
-          return { ...badge, unlocked: true, unlockedDate: getTodayKey() }
+        // Safety check: ensure condition is a function
+        if (typeof badge.condition === 'function') {
+          const shouldUnlock = badge.condition(updatedHabits) && !badge.unlocked
+          if (shouldUnlock) {
+            setNewBadges(prevNew => [...prevNew, badge])
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 3000)
+            return { ...badge, unlocked: true, unlockedDate: getTodayKey() }
+          }
         }
         return badge
       })
@@ -519,7 +544,7 @@ export default function Home() {
 
         {/* Badges */}
         <div className="glow-card p-6 mb-6">
-          <h3 className="text-xl font-bold neon-pink mb-6 tracking-wider text-center">�� ACHIEVEMENT MATRIX 🏆</h3>
+          <h3 className="text-xl font-bold neon-pink mb-6 tracking-wider text-center">🏆 ACHIEVEMENT MATRIX 🏆</h3>
           <div className="grid grid-cols-2 gap-4">
             {getUnlockedBadges().map((badge) => (
               <div key={badge.id} className="streak-badge p-4 rounded-lg text-center relative border border-pink-500/30">
