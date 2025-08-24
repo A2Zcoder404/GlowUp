@@ -107,9 +107,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .streak-badge:hover {
   transform: scale(1.05);
-  box-shadow:
-    0 0 30px rgba(255, 0, 255, 0.7),
-    0 0 60px rgba(0, 255, 255, 0.5);
 }
 
 .progress-bar {
@@ -319,7 +316,6 @@ h1, h2, h3, h4, h5, h6 {
 .target-button:hover {
   background: linear-gradient(45deg, rgba(255, 0, 255, 0.3), rgba(0, 255, 255, 0.3));
   border-color: rgba(255, 0, 255, 0.6);
-  box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
 }
 
 .update-button {
@@ -331,7 +327,6 @@ h1, h2, h3, h4, h5, h6 {
 .update-button:hover {
   background: linear-gradient(45deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 0, 0.3));
   border-color: rgba(0, 255, 255, 0.6);
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
 }
 
 /* Glitch effect for extra gamification */
