@@ -43,7 +43,6 @@ const motivationalQuotes = [
   "You're writing your wellness story daily! 📖"
 ]
 
-
 const getTodayKey = () => new Date().toDateString()
 const getLevel = (xp: number) => {
   // Progressive XP requirements: 100, 200, 400, 700, 1100, 1600...
@@ -90,21 +89,6 @@ const calculateXPFromProgress = (habit: Habit): number => {
   }
 }
 
-const getTargetOptions = (type: string) => {
-  switch (type) {
-    case 'water':
-      return [{ value: 2, label: '2L' }, { value: 3, label: '3L' }, { value: 4, label: '4L' }, { value: 6, label: '6L' }]
-    case 'exercise':
-      return [{ value: 30, label: '30min' }, { value: 60, label: '1hr' }, { value: 90, label: '1.5hr' }, { value: 120, label: '2hr' }]
-    case 'meditation':
-      return [{ value: 15, label: '15min' }, { value: 30, label: '30min' }, { value: 45, label: '45min' }, { value: 60, label: '1hr' }]
-    case 'reading':
-      return [{ value: 30, label: '30min' }, { value: 60, label: '1hr' }, { value: 90, label: '1.5hr' }, { value: 120, label: '2hr' }]
-    default:
-      return []
-  }
-}
-
 export default function Home() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -120,16 +104,21 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState<string | null>(null)
   const [toastMessage, setToastMessage] = useState<string>('')
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Listen for auth state changes
   useEffect(() => {
+    console.log('Setting up auth state listener...')
+    
     const unsubscribe = onAuthStateChange((authUser) => {
+      console.log('Auth state changed:', authUser ? `User: ${authUser.email}` : 'No user')
       setUser(authUser)
       setAuthLoading(false)
       
       if (authUser) {
         console.log('User authenticated:', authUser.email)
+        // Load user data when authenticated
+        loadUserDataForUser()
       } else {
         console.log('User signed out')
         // Clear user data when signed out
@@ -143,104 +132,79 @@ export default function Home() {
       }
     })
 
-    return () => unsubscribe()
+    return () => {
+      console.log('Cleaning up auth listener')
+      unsubscribe()
+    }
   }, [])
 
-  // Load data from Firebase/localStorage on mount
-  useEffect(() => {
-    // Only load data if user is authenticated
-    if (!user) return
-    
-    const loadData = async () => {
-      setIsLoading(true)
+  // Load user data function
+  const loadUserDataForUser = async () => {
+    setIsLoading(true)
+    console.log('Loading user data...')
 
-      // Set loading timeout to prevent infinite loading
-      const loadingTimeout = setTimeout(() => {
-        console.warn('Loading timeout reached, using default data')
-        setUserData({
-          habits: getInitialHabits(),
-          totalXP: 0,
-          level: 1,
-          badges: getInitialBadges(),
-          lastVisitDate: getTodayKey()
-        })
-        setToastMessage('⚠️ Using offline mode - data will sync when possible')
-        setTimeout(() => setToastMessage(''), 3000)
-        setIsLoading(false)
-      }, 10000) // 10 second timeout
+    try {
+      const savedData = await loadUserData()
 
-      try {
-        const savedData = await loadUserData()
+      if (savedData) {
+        console.log('User data loaded from database')
+        // Check for new day and reset progress
+        const updatedData = checkAndResetDailyProgress(savedData)
 
-        if (savedData) {
-          // Check for new day and reset progress
-          const updatedData = checkAndResetDailyProgress(savedData)
+        // Add any missing badges
+        const currentBadgeIds = updatedData.badges.map(b => b.id)
+        const initialBadges = getInitialBadges()
+        const missingBadges = initialBadges.filter(b => !currentBadgeIds.includes(b.id))
 
-          // Add any missing badges
-          const currentBadgeIds = updatedData.badges.map(b => b.id)
-          const initialBadges = getInitialBadges()
-          const missingBadges = initialBadges.filter(b => !currentBadgeIds.includes(b.id))
-
-          if (missingBadges.length > 0) {
-            updatedData.badges.push(...missingBadges)
-          }
-
-          setUserData(updatedData)
-
-          // Save back to Firebase if we made changes (non-blocking)
-          if (updatedData !== savedData) {
-            saveUserData(updatedData).catch(error =>
-              console.warn('Background save failed:', error)
-            )
-          }
-
-          // Show connection status
-          setToastMessage('✅ Data loaded successfully!')
-          setTimeout(() => setToastMessage(''), 2000)
-        } else {
-          // Initialize with default data
-          const initialData: UserData = {
-            habits: getInitialHabits(),
-            totalXP: 0,
-            level: 1,
-            badges: getInitialBadges(),
-            lastVisitDate: getTodayKey()
-          }
-          setUserData(initialData)
-
-          // Save to Firebase in background (non-blocking)
-          saveUserData(initialData).catch(error =>
-            console.warn('Initial save failed:', error)
-          )
-
-          // Welcome new user
-          setToastMessage('🎮 Welcome to GlowUp!')
-          setTimeout(() => setToastMessage(''), 3000)
+        if (missingBadges.length > 0) {
+          updatedData.badges.push(...missingBadges)
         }
-      } catch (error) {
-        console.error('Error loading data:', error)
-        // Fallback to default data
-        setUserData({
+
+        setUserData(updatedData)
+
+        // Save back to Firebase if we made changes (non-blocking)
+        if (updatedData !== savedData) {
+          saveUserData(updatedData).catch(error =>
+            console.warn('Background save failed:', error)
+          )
+        }
+
+        setToastMessage('✅ Welcome back!')
+        setTimeout(() => setToastMessage(''), 2000)
+      } else {
+        console.log('No existing data, initializing with defaults')
+        // Initialize with default data
+        const initialData: UserData = {
           habits: getInitialHabits(),
           totalXP: 0,
           level: 1,
           badges: getInitialBadges(),
           lastVisitDate: getTodayKey()
-        })
-        setToastMessage('⚠️ Started in offline mode')
+        }
+        setUserData(initialData)
+
+        // Save to Firebase in background (non-blocking)
+        saveUserData(initialData).catch(error =>
+          console.warn('Initial save failed:', error)
+        )
+
+        setToastMessage('🎮 Welcome to GlowUp!')
         setTimeout(() => setToastMessage(''), 3000)
       }
-
-      clearTimeout(loadingTimeout)
-      setIsLoading(false)
+    } catch (error) {
+      console.error('Error loading data:', error)
+      setToastMessage('⚠️ Using offline mode')
+      setTimeout(() => setToastMessage(''), 3000)
     }
 
-    loadData()
+    setIsLoading(false)
+  }
 
-    // Set daily quote based on date
+  // Set daily quote
+  useEffect(() => {
     const quoteIndex = new Date().getDate() % motivationalQuotes.length
     setTodayQuote(motivationalQuotes[quoteIndex])
-  }, [user])
+  }, [])
 
   // Save to Firebase whenever userData changes (non-blocking)
   useEffect(() => {
@@ -387,9 +351,8 @@ export default function Home() {
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4 animate-spin">⚡</div>
-          <div className="text-xl neon-text font-bold">INITIALIZING GLOWUP...</div>
-          <div className="text-sm text-cyan-300 mt-2">Loading your wellness data...</div>
-          <div className="text-xs text-gray-400 mt-3">If this takes too long, we'll start in offline mode</div>
+          <div className="text-xl neon-text font-bold">LOADING YOUR DATA...</div>
+          <div className="text-sm text-cyan-300 mt-2">Setting up your wellness dashboard...</div>
         </div>
       </div>
     )
@@ -411,7 +374,7 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4 text-sm">
               <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-              <span className="text-cyan-400 font-bold">DATA SYNCED</span>
+              <span className="text-cyan-400 font-bold">CONNECTED</span>
               <button
                 onClick={handleSignOut}
                 className="text-xs text-gray-400 hover:text-red-400 transition-colors font-medium"
@@ -597,7 +560,7 @@ export default function Home() {
 
         {/* Badges */}
         <div className="glow-card p-6 mb-6">
-          <h3 className="text-xl font-bold neon-pink mb-6 tracking-wider text-center">�� ACHIEVEMENT MATRIX 🏆</h3>
+          <h3 className="text-xl font-bold neon-pink mb-6 tracking-wider text-center">🏆 ACHIEVEMENT MATRIX 🏆</h3>
           <div className="grid grid-cols-2 gap-4">
             {getUnlockedBadges().map((badge) => (
               <div key={badge.id} className="streak-badge p-4 rounded-lg text-center relative border border-pink-500/30">
@@ -673,25 +636,6 @@ export default function Home() {
             {toastMessage}
           </div>
         )}
-
-        {/* Feature Info Section */}
-        <div className="glow-card p-4 mb-6 text-center">
-          <h3 className="text-lg font-bold neon-yellow mb-3">🚀 NEW FEATURES</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="p-3 border border-cyan-500/30 rounded-lg bg-cyan-500/10">
-              <div className="neon-text font-bold mb-1">⚙️ SMART SETTINGS</div>
-              <div className="text-gray-300">Click target values to see XP previews and streak rules</div>
-            </div>
-            <div className="p-3 border border-pink-500/30 rounded-lg bg-pink-500/10">
-              <div className="neon-pink font-bold mb-1">🔄 AUTO SYNC</div>
-              <div className="text-gray-300">Data saves to cloud when possible, works offline too</div>
-            </div>
-            <div className="p-3 border border-green-500/30 rounded-lg bg-green-500/10">
-              <div className="neon-green font-bold mb-1">📊 DAILY RESET</div>
-              <div className="text-gray-300">Streaks count once per day, progress resets at midnight</div>
-            </div>
-          </div>
-        </div>
 
         {/* Settings Modal */}
         {showSettingsModal && (

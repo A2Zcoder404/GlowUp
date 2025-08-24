@@ -1,7 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
@@ -19,7 +18,6 @@ const firebaseConfig = {
 let app;
 let db;
 let auth;
-let analytics;
 
 if (typeof window !== 'undefined') {
   // Only initialize in browser environment
@@ -27,28 +25,26 @@ if (typeof window !== 'undefined') {
     // Check if Firebase is already initialized
     if (getApps().length === 0) {
       app = initializeApp(firebaseConfig);
+      console.log('Firebase app initialized');
     } else {
       app = getApps()[0];
+      console.log('Using existing Firebase app');
     }
 
     // Initialize Firestore
     db = getFirestore(app);
+    console.log('Firestore initialized');
 
     // Initialize Auth
     auth = getAuth(app);
+    console.log('Auth initialized');
 
-    // Initialize Analytics
-    try {
-      analytics = getAnalytics(app);
-    } catch (analyticsError) {
-      console.warn('Analytics initialization failed:', analyticsError);
-    }
-
-    console.log('Firebase initialized successfully');
   } catch (error) {
     console.error('Firebase initialization failed:', error);
   }
+} else {
+  console.log('Not in browser environment, skipping Firebase initialization');
 }
 
-export { db, auth, analytics, app };
+export { db, auth, app };
 export default app;
