@@ -221,36 +221,42 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 floating">
-          <h1 className="text-5xl font-black text-white mb-2 drop-shadow-lg">✨ GlowUp</h1>
-          <p className="text-xl text-white/90 font-medium">Gamify your wellness journey</p>
+          <h1 className="text-6xl font-black neon-text neon-flicker mb-4">⚡ GLOWUP ⚡</h1>
+          <p className="text-xl text-cyan-300 font-medium tracking-wide">GAMIFY YOUR WELLNESS JOURNEY</p>
+          <div className="flex justify-center space-x-2 mt-2 text-2xl">
+            <span className="neon-pink">●</span>
+            <span className="neon-text">●</span>
+            <span className="neon-green">●</span>
+            <span className="neon-yellow">●</span>
+          </div>
         </div>
 
         {/* Stats Card */}
         <div className="glow-card p-6 mb-6">
           <div className="grid grid-cols-3 gap-4 text-center mb-4">
-            <div>
-              <div className="text-2xl font-bold text-white">{userData.totalXP}</div>
-              <div className="text-white/70">Total XP</div>
+            <div className="border border-cyan-500/30 rounded-lg p-3 bg-cyan-500/10">
+              <div className="text-3xl font-bold neon-text">{userData.totalXP}</div>
+              <div className="text-cyan-300/80 text-sm tracking-wide">TOTAL XP</div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-white">Level {userData.level}</div>
-              <div className="text-white/70">Current Level</div>
+            <div className="border border-pink-500/30 rounded-lg p-3 bg-pink-500/10">
+              <div className="text-3xl font-bold neon-pink">LVL {userData.level}</div>
+              <div className="text-pink-300/80 text-sm tracking-wide">CURRENT LEVEL</div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-white">{userData.habits.reduce((sum, h) => sum + h.streakCount, 0)}</div>
-              <div className="text-white/70">Total Streaks</div>
+            <div className="border border-green-500/30 rounded-lg p-3 bg-green-500/10">
+              <div className="text-3xl font-bold neon-green">{userData.habits.reduce((sum, h) => sum + h.streakCount, 0)}</div>
+              <div className="text-green-300/80 text-sm tracking-wide">STREAKS</div>
             </div>
           </div>
 
           {/* XP Progress Bar */}
-          <div className="mt-4">
-            <div className="flex justify-between text-sm text-white/70 mb-1">
-              <span>Progress to Level {userData.level + 1}</span>
-              <span>{getXPProgress(userData.totalXP, userData.level)}/{getXPForNextLevel(userData.level)} XP</span>
+          <div className="mt-6">
+            <div className="flex justify-between text-sm text-cyan-300 mb-2">
+              <span className="font-semibold">NEXT LEVEL PROGRESS</span>
+              <span className="neon-text">{getXPProgress(userData.totalXP, userData.level)}/{getXPForNextLevel(userData.level)} XP</span>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-3">
+            <div className="w-full bg-gray-800/50 rounded-full h-4 border border-cyan-500/30">
               <div
-                className="progress-bar h-3 rounded-full transition-all duration-500 ease-out"
+                className="progress-bar h-4 rounded-full transition-all duration-500 ease-out glow-rotate"
                 style={{ width: `${getProgressToNextLevel()}%` }}
               ></div>
             </div>
@@ -258,9 +264,12 @@ export default function Home() {
         </div>
 
         {/* Daily Quote */}
-        <div className="glow-card p-6 mb-6 text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">🌅 Daily Motivation</h3>
-          <p className="text-xl text-white/90 italic">{todayQuote}</p>
+        <div className="glow-card p-6 mb-6 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-pink-500/10 animate-pulse"></div>
+          <div className="relative z-10">
+            <h3 className="text-lg font-bold neon-yellow mb-3 tracking-wider">⚡ DAILY MOTIVATION ⚡</h3>
+            <p className="text-xl text-cyan-100 italic font-medium leading-relaxed">{todayQuote}</p>
+          </div>
         </div>
 
         {/* Habits */}
