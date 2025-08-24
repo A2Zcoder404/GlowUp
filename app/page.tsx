@@ -301,22 +301,67 @@ export default function Home() {
         </div>
 
         {/* Badges */}
-        <div className="glow-card p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Achievements</h3>
+        <div className="glow-card p-6 mb-6">
+          <h3 className="text-xl font-bold text-white mb-4">🏆 Achievements</h3>
           <div className="grid grid-cols-2 gap-3">
-            {getBadges().map((badge, index) => (
-              <div key={index} className="streak-badge p-3 rounded-lg text-center">
+            {getUnlockedBadges().map((badge) => (
+              <div key={badge.id} className="streak-badge p-3 rounded-lg text-center relative">
                 <div className="text-2xl mb-1">{badge.icon}</div>
                 <div className="text-white font-medium text-sm">{badge.name}</div>
+                {badge.unlockedDate === getTodayKey() && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+                )}
               </div>
             ))}
-            {getBadges().length === 0 && (
-              <div className="col-span-2 text-center text-white/70 py-4">
-                Complete habits to earn badges! 🏆
+            {userData.badges.filter(b => !b.unlocked).map((badge) => (
+              <div key={badge.id} className="p-3 rounded-lg text-center bg-white/5 border border-white/20 opacity-50">
+                <div className="text-2xl mb-1 grayscale">{badge.icon}</div>
+                <div className="text-white/50 font-medium text-sm">{badge.name}</div>
               </div>
-            )}
+            ))}
           </div>
+          {getUnlockedBadges().length === 0 && (
+            <div className="text-center text-white/70 py-4">
+              Complete habits to unlock badges! 🏆
+            </div>
+          )}
         </div>
+
+        {/* New Badge Popup */}
+        {newBadges.length > 0 && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="glow-card p-6 text-center max-w-sm w-full animate-pulse">
+              <h3 className="text-2xl font-bold text-white mb-4">🎉 New Badge Unlocked!</h3>
+              {newBadges.map((badge, index) => (
+                <div key={index} className="mb-4">
+                  <div className="text-4xl mb-2">{badge.icon}</div>
+                  <div className="text-xl text-white font-bold">{badge.name}</div>
+                </div>
+              ))}
+              <button
+                onClick={dismissNewBadges}
+                className="mt-4 px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg font-semibold hover:from-pink-600 hover:to-purple-600 transition-all"
+              >
+                Awesome! ✨
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Confetti Effect */}
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-40">
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 animate-bounce">
+              <div className="text-4xl">🎉</div>
+            </div>
+            <div className="absolute top-10 left-1/4 transform -translate-x-1/2 animate-bounce delay-100">
+              <div className="text-3xl">✨</div>
+            </div>
+            <div className="absolute top-5 right-1/4 transform translate-x-1/2 animate-bounce delay-200">
+              <div className="text-3xl">🎆</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
